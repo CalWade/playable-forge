@@ -1,0 +1,118 @@
+import { streamText, generateText } from 'ai';
+import { getModel } from './provider';
+import { GENERATE_SYSTEM_PROMPT, ITERATE_SYSTEM_PROMPT } from './prompts';
+import { withRetry } from './retry';
+
+interface AssetMetadata {
+  originalName: string;
+  category: string;
+  slotName: string | null;
+  variantRole: string;
+  width: number | null;
+  height: number | null;
+  mimeType: string;
+}
+
+interface GenerateParams {
+  assets: AssetMetadata[];
+  referenceImageBase64?: string[];
+  description?: string;
+}
+
+function buildAssetList(assets: AssetMetadata[]): string {
+  return assets
+    .filter((a) => a.variantRole !== 'excluded')
+    .map(
+      (a) =>
+        `- ${a.originalName} | 分类: ${a.category} | slot: ${a.slotName || a.category} | ${
+          a.width && a.height ? `${a.width}x${a.height}` : '尺寸未知'
+        } | ${a.mimeType}`
+    )
+    .join('\n');
+}
+
+export async function generateSkeleton(params: GenerateParams) {
+  const assetList = buildAssetList(params.assets);
+
+  let textPrompt = `请根据以下素材生成 Playable Ad HTML 骨架。\n\n## 素材列表\n${assetList}`;
+
+  if (params.description) {
+    textPrompt += `\n\n## 用户描述\n${params.description}`;
+  }
+
+  // Note: for reference images we'd use multimodal messages,
+  // but for simplicity we describe them in text for now
+  if (params.referenceImageBase64 && params.referenceImageBase64.length > 0) {
+    textPrompt += `\n\n## 效果图\n已提供 ${params.referenceImageBase64.length} 张效果图作为参考。`;
+  }
+
+  const result = streamText({
+    model: getModel(),
+    system: GENERATE_SYSTEM_PROMPT,
+    prompt: textPrompt,
+    maxOutputTokens: 16000,
+  });
+
+  return result;
+}
+
+interface IterateParams {
+  currentSkeleton: string;
+  userMessage: string;
+  conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
+}
+
+export async function iterateSkeleton(params: IterateParams) {
+  const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+
+  // Include recent conversation history (last 10 pairs)
+  const recentHistory = params.conversationHistory.slice(-20);
+  for (const msg of recentHistory) {
+    messages.push({ role: msg.role, content: msg.content });
+  }
+
+  // Current iteration request
+  messages.push({
+    role: 'user',
+    content: `当前 HTML 骨架：\n\`\`\`html\n${params.currentSkeleton}\n\`\`\`\n\n修改要求：${params.userMessage}`,
+  });
+
+  const result = streamText({
+    model: getModel(),
+    system: ITERATE_SYSTEM_PROMPT,
+    messages,
+    maxOutputTokens: 16000,
+  });
+
+  return result;
+}
+
+export async function autofixSkeleton(
+  skeleton: string,
+  failedItems: string[]
+): Promise<string> {
+  const result = await generateText({
+    model: getModel(),
+    system: ITERATE_SYSTEM_PROMPT,
+    prompt: `以下 HTML 校验未通过，请修复这些问题：\n\n校验失败项：\n${failedItems
+      .map((f) => `- ${f}`)
+      .join('\n')}\n\n当前 HTML：\n\`\`\`html\n${skeleton}\n\`\`\`\n\n请仅返回修复后的完整 HTML 代码。`,
+    maxOutputTokens: 16000,
+  });
+
+  return extractHtml(result.text);
+}
+
+/**
+ * Extract HTML from AI response (strip markdown code blocks if present)
+ */
+export function extractHtml(text: string): string {
+  const match = text.match(/```html?\s*\n?([\s\S]*?)\n?```/);
+  if (match) return match[1].trim();
+
+  if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+    return text.trim();
+  }
+
+  return text.trim();
+}
