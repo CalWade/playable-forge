@@ -16,6 +16,7 @@ interface ChatPanelProps {
 export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelProps) {
   const { token } = useAuth();
   const [input, setInput] = useState('');
+  const [description, setDescription] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isStreaming, lastEvent, startStream } = useSSE();
 
@@ -57,10 +58,10 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
   }, [messages]);
 
   const handleGenerate = async () => {
-    setMessages((prev) => [...prev, { role: 'system', content: '正在生成初稿...' }]);
+    setMessages((prev) => [...prev, { role: 'system', content: description ? `正在生成初稿... (描述: ${description})` : '正在生成初稿...' }]);
     await startStream(`/api/projects/${projectId}/generate`, {
       method: 'POST',
-      body: JSON.stringify({}),
+      body: JSON.stringify({ description: description || undefined }),
       token: token || undefined,
     });
   };
@@ -94,14 +95,21 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.length === 0 && !hasVersion && (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <p className="mb-4 text-sm text-gray-400">上传素材后，点击生成初稿</p>
+                  <div className="flex flex-col items-center justify-center py-8 px-4">
+                    <p className="mb-4 text-sm text-gray-500 font-medium">上传素材后，描述你想要的广告效果</p>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder={"描述广告效果（可选）\n例如：背景图全屏展示，2秒后弹窗从底部滑入，弹窗上的按钮有呼吸动画，点击跳转商店"}
+                      className="w-full max-w-md rounded-lg border border-gray-200 px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      rows={4}
+                    />
                     <button
                       onClick={handleGenerate}
                       disabled={isStreaming}
-                      className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+                      className="mt-4 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                     >
-                      {isStreaming ? '生成中...' : '生成初稿'}
+                      {isStreaming ? '生成中...' : '✨ 生成初稿'}
                     </button>
                   </div>
                 )}
