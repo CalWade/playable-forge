@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { getAuth, handleAuthError } from '@/lib/auth/middleware';
 import { processImage, processAudio, isImage, isAudio } from '@/lib/assets/processor';
 import { generateBase64 } from '@/lib/assets/base64';
+import { classifyAssets } from '@/lib/ai/classify';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -105,6 +106,38 @@ export async function POST(
         category: asset.category,
         thumbnailUrl: thumbnailPath ? `/api/projects/${projectId}/assets/${asset.id}/thumbnail` : null,
       });
+    }
+
+    // AI classification
+    try {
+      const assetInfos = assets.map((a) => ({
+        fileName: a.fileName,
+        originalName: a.originalName,
+        mimeType: a.mimeType,
+        fileSize: a.fileSize,
+        width: a.width,
+        height: a.height,
+      }));
+      const classifications = await classifyAssets(assetInfos);
+
+      // Update assets with AI classifications
+      for (const classification of classifications) {
+        const asset = assets.find((a) => a.originalName === classification.fileName || a.fileName === classification.fileName);
+        if (asset) {
+          await prisma.asset.update({
+            where: { id: asset.id },
+            data: {
+              category: classification.category,
+              variantRole: classification.suggestedVariantRole,
+              variantGroup: classification.suggestedVariantGroup || null,
+              slotName: classification.suggestedSlotName || classification.category,
+            },
+          });
+          asset.category = classification.category;
+        }
+      }
+    } catch (classifyError) {
+      console.error('Classification failed, assets remain unrecognized:', classifyError);
     }
 
     // Estimate total HTML size
