@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui/badge';
 import { SelectDropdown } from '@/components/ui/dropdown';
-import { useAuth } from '@/components/auth-provider';
 import { toast } from '@/components/ui/toast';
 
 interface Asset {
@@ -51,10 +50,10 @@ interface AssetCardProps {
   asset: Asset;
   projectId: string;
   onUpdate: () => void;
+  token: string;
 }
 
-export function AssetCard({ asset, projectId, onUpdate }: AssetCardProps) {
-  const { token } = useAuth();
+export function AssetCard({ asset, projectId, onUpdate, token }: AssetCardProps) {
 
   const updateAsset = async (data: Record<string, unknown>) => {
     try {
@@ -80,7 +79,7 @@ export function AssetCard({ asset, projectId, onUpdate }: AssetCardProps) {
       <div className="relative mb-2 aspect-square overflow-hidden rounded-md bg-gray-100">
         {asset.thumbnailUrl ? (
           <img
-            src={asset.thumbnailUrl}
+            src={`${asset.thumbnailUrl}?token=${token}`}
             alt={asset.originalName}
             className="h-full w-full object-cover"
           />

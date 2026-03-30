@@ -3,6 +3,7 @@
 import { UploadZone } from './upload-zone';
 import { AssetCard } from './asset-card';
 import { useAssets } from '@/hooks/use-assets';
+import { useAuth } from '@/components/auth-provider';
 
 interface AssetPanelProps {
   projectId: string;
@@ -10,6 +11,7 @@ interface AssetPanelProps {
 
 export function AssetPanel({ projectId }: AssetPanelProps) {
   const { assets, isLoading, refresh } = useAssets(projectId);
+  const { token } = useAuth();
 
   const totalSize = assets.reduce(
     (sum: number, a: { compressedSize: number | null; fileSize: number }) =>
@@ -69,6 +71,7 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
                 asset={asset}
                 projectId={projectId}
                 onUpdate={refresh}
+                token={token || ''}
               />
             ))}
           </div>

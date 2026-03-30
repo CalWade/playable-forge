@@ -14,11 +14,15 @@ export class AuthError extends Error {
 }
 
 export function getAuth(request: NextRequest): AuthResult {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader) throw new AuthError('Missing Authorization header');
+  // Try Authorization header first
+  let token = request.headers.get('Authorization')?.replace('Bearer ', '') || '';
 
-  const token = authHeader.replace('Bearer ', '');
-  if (!token) throw new AuthError('Missing token');
+  // Fallback: query param ?token=xxx (for img src, iframe src, downloads)
+  if (!token) {
+    token = request.nextUrl.searchParams.get('token') || '';
+  }
+
+  if (!token) throw new AuthError('Missing Authorization');
 
   try {
     const payload = verifyJwt(token);
