@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 interface SSEEvent {
   event: string;
@@ -11,12 +11,14 @@ export function useSSE() {
   const [events, setEvents] = useState<SSEEvent[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [lastEvent, setLastEvent] = useState<SSEEvent | null>(null);
+  const gotCompleteOrError = useRef(false);
 
   const startStream = useCallback(
     async (url: string, options: { method?: string; body?: string; token?: string }) => {
       setEvents([]);
       setIsStreaming(true);
       setLastEvent(null);
+      gotCompleteOrError.current = false;
 
       try {
         const headers: Record<string, string> = {};
@@ -31,11 +33,38 @@ export function useSSE() {
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || `Request failed: ${res.status}`);
+          const errEvt: SSEEvent = {
+            event: 'error',
+            data: { message: data.error || `请求失败: ${res.status}` },
+          };
+          setEvents([errEvt]);
+          setLastEvent(errEvt);
+          setIsStreaming(false);
+          return;
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('text/event-stream')) {
+          // Not SSE - might be a JSON error response
+          const data = await res.json().catch(() => ({}));
+          const errEvt: SSEEvent = {
+            event: 'error',
+            data: { message: data.error || '服务器返回了非预期格式' },
+          };
+          setEvents([errEvt]);
+          setLastEvent(errEvt);
+          setIsStreaming(false);
+          return;
         }
 
         const reader = res.body?.getReader();
-        if (!reader) throw new Error('No response body');
+        if (!reader) {
+          const errEvt: SSEEvent = { event: 'error', data: { message: '无响应数据' } };
+          setEvents([errEvt]);
+          setLastEvent(errEvt);
+          setIsStreaming(false);
+          return;
+        }
 
         const decoder = new TextDecoder();
         let buffer = '';
@@ -56,9 +85,13 @@ export function useSSE() {
             } else if (line.startsWith('data: ') && currentEvent) {
               try {
                 const data = JSON.parse(line.slice(6));
-                const evt = { event: currentEvent, data };
+                const evt: SSEEvent = { event: currentEvent, data };
                 setEvents((prev) => [...prev, evt]);
                 setLastEvent(evt);
+
+                if (currentEvent === 'complete' || currentEvent === 'error') {
+                  gotCompleteOrError.current = true;
+                }
               } catch {
                 // skip invalid JSON
               }
@@ -66,10 +99,20 @@ export function useSSE() {
             }
           }
         }
+
+        // Stream ended without complete or error event
+        if (!gotCompleteOrError.current) {
+          const errEvt: SSEEvent = {
+            event: 'error',
+            data: { message: 'AI 生成中断，未返回完整结果，请重试' },
+          };
+          setEvents((prev) => [...prev, errEvt]);
+          setLastEvent(errEvt);
+        }
       } catch (error) {
-        const errEvt = {
+        const errEvt: SSEEvent = {
           event: 'error',
-          data: { message: error instanceof Error ? error.message : 'Stream failed' },
+          data: { message: error instanceof Error ? error.message : '网络错误' },
         };
         setEvents((prev) => [...prev, errEvt]);
         setLastEvent(errEvt);

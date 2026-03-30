@@ -34,21 +34,32 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
 
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
 
-  // Handle SSE completion
+  // Handle SSE events
   useEffect(() => {
-    if (lastEvent?.event === 'complete') {
+    if (!lastEvent) return;
+    
+    if (lastEvent.event === 'complete') {
       const versionId = lastEvent.data.versionId as string;
       onVersionChange(versionId);
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: `已修改完成 (v${lastEvent.data.version})` },
+        { role: 'assistant', content: `✅ 已完成 (v${lastEvent.data.version})` },
       ]);
       refreshConv();
-    } else if (lastEvent?.event === 'error') {
+    } else if (lastEvent.event === 'error') {
       setMessages((prev) => [
         ...prev,
-        { role: 'system', content: `错误: ${lastEvent.data.message}` },
+        { role: 'system', content: `❌ 错误: ${lastEvent.data.message}` },
       ]);
+    } else if (lastEvent.event === 'status') {
+      setMessages((prev) => {
+        // Replace last status message if exists, otherwise add
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.role === 'status') {
+          return [...prev.slice(0, -1), { role: 'status', content: lastEvent.data.message as string }];
+        }
+        return [...prev, { role: 'status', content: lastEvent.data.message as string }];
+      });
     }
   }, [lastEvent, onVersionChange, refreshConv]);
 
@@ -122,7 +133,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
                       className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
                         msg.role === 'user'
                           ? 'bg-blue-600 text-white'
-                          : msg.role === 'system'
+                          : msg.role === 'system' || msg.role === 'status'
                           ? 'bg-gray-100 text-gray-500 italic'
                           : 'bg-gray-100 text-gray-800'
                       }`}
