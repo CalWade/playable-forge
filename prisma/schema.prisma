@@ -1,0 +1,146 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==================== 用户 ====================
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  displayName  String?
+  role         String   @default("member")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  projects Project[]
+}
+
+// ==================== 项目 ====================
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  status      String   @default("draft")
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user          User                  @relation(fields: [userId], references: [id])
+  assets        Asset[]
+  versions      HtmlVersion[]
+  variants      Variant[]
+  conversations ConversationMessage[]
+  stats         ProjectStats?
+}
+
+// ==================== 素材 ====================
+
+model Asset {
+  id             String  @id @default(cuid())
+  projectId      String
+  fileName       String
+  originalName   String
+  mimeType       String
+  fileSize       Int
+  compressedSize Int?
+  width          Int?
+  height         Int?
+  duration       Float?
+  filePath       String
+  thumbnailPath  String?
+  base64CachePath String?
+
+  category          String  @default("unrecognized")
+  categoryConfirmed Boolean @default(false)
+
+  variantRole  String  @default("fixed")
+  variantGroup String?
+  slotName     String?
+
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+// ==================== HTML 版本 ====================
+
+model HtmlVersion {
+  id           String  @id @default(cuid())
+  projectId    String
+  version      Int
+  skeletonHtml String
+  fullHtmlPath String?
+  fullHtmlSize Int?
+  isLocked     Boolean @default(false)
+
+  validationGrade String?
+  validationJson  String?
+
+  aiModel          String?
+  promptTokens     Int?
+  completionTokens Int?
+
+  createdAt DateTime @default(now())
+
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  variants Variant[]
+}
+
+// ==================== 对话消息 ====================
+
+model ConversationMessage {
+  id        String @id @default(cuid())
+  projectId String
+  role      String
+  content   String
+
+  versionId     String?
+  attachmentIds String?
+
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+// ==================== 变体 ====================
+
+model Variant {
+  id          String  @id @default(cuid())
+  projectId   String
+  versionId   String
+  name        String
+  slotMapping String
+  fullHtmlPath String?
+  fullHtmlSize Int?
+
+  validationGrade String?
+  validationJson  String?
+
+  status       String  @default("pending")
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+
+  project Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version HtmlVersion @relation(fields: [versionId], references: [id])
+}
+
+// ==================== 项目统计 ====================
+
+model ProjectStats {
+  id                  String  @id @default(cuid())
+  projectId           String  @unique
+  iterationCount      Int     @default(0)
+  firstPassValidation Boolean @default(false)
+  totalVariants       Int     @default(0)
+  passedVariants      Int     @default(0)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
