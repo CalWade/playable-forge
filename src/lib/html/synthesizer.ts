@@ -38,15 +38,41 @@ export function synthesize(
   }
 
   // Replace PLACEHOLDERs for each slot
+  // Strategy: find each element with data-variant-slot, then replace its src containing PLACEHOLDER
   slotAssets.forEach((asset, slotName) => {
-    // Match: data-variant-slot="slotName" ... src="data:...;base64,PLACEHOLDER"
-    const pattern = new RegExp(
-      `(data-variant-slot="${escapeRegex(slotName)}"[^>]*?src=")data:[^;]*;base64,PLACEHOLDER"`,
+    const escapedSlot = escapeRegex(slotName);
+    
+    // Ensure base64DataUri is a proper data URI
+    let dataUri = asset.base64DataUri;
+    if (!dataUri.startsWith('data:')) {
+      dataUri = `data:${asset.mimeType};base64,${dataUri}`;
+    }
+
+    // Pattern 1: src="data:...;base64,PLACEHOLDER"
+    const pattern1 = new RegExp(
+      `(data-variant-slot="${escapedSlot}"[^>]*?src=")data:[^;]*;base64,PLACEHOLDER"`,
+      'g'
+    );
+    // Pattern 2: src="PLACEHOLDER" (AI might use simple placeholder)
+    const pattern2 = new RegExp(
+      `(data-variant-slot="${escapedSlot}"[^>]*?src=")PLACEHOLDER"`,
+      'g'
+    );
+    // Pattern 3: src attribute comes before data-variant-slot
+    const pattern3 = new RegExp(
+      `(src=")data:[^;]*;base64,PLACEHOLDER("[^>]*?data-variant-slot="${escapedSlot}")`,
+      'g'
+    );
+    const pattern4 = new RegExp(
+      `(src=")PLACEHOLDER("[^>]*?data-variant-slot="${escapedSlot}")`,
       'g'
     );
 
     const before = html;
-    html = html.replace(pattern, `$1${asset.base64DataUri}"`);
+    html = html.replace(pattern1, `$1${dataUri}"`);
+    html = html.replace(pattern2, `$1${dataUri}"`);
+    html = html.replace(pattern3, `$1${dataUri}$2`);
+    html = html.replace(pattern4, `$1${dataUri}$2`);
 
     if (html !== before) {
       replacedSlots.push(slotName);
@@ -54,14 +80,18 @@ export function synthesize(
   });
 
   // Check for remaining PLACEHOLDERs
-  const unreplacedMatches = html.match(/data-variant-slot="([^"]+)"[^>]*?PLACEHOLDER/g);
   const unreplacedSlots: string[] = [];
-  if (unreplacedMatches) {
-    for (const m of unreplacedMatches) {
-      const nameMatch = m.match(/data-variant-slot="([^"]+)"/);
-      if (nameMatch && !unreplacedSlots.includes(nameMatch[1])) {
-        unreplacedSlots.push(nameMatch[1]);
-      }
+  const unreplacedRegex = /data-variant-slot="([^"]+)"/g;
+  let umatch;
+  while ((umatch = unreplacedRegex.exec(html)) !== null) {
+    const name = umatch[1];
+    // Check if there's still a PLACEHOLDER near this slot
+    const surrounding = html.substring(
+      Math.max(0, umatch.index - 200),
+      Math.min(html.length, umatch.index + 200)
+    );
+    if (surrounding.includes('PLACEHOLDER') && !unreplacedSlots.includes(name)) {
+      unreplacedSlots.push(name);
     }
   }
 
@@ -81,7 +111,9 @@ export async function saveHtml(
   const dir = path.join(DATA_DIR, 'html', projectId);
   await fs.mkdir(dir, { recursive: true });
 
+  // Ensure parent dir for nested filenames like "variants/name.html"
   const filePath = path.join(dir, fileName);
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, html, 'utf-8');
 
   const size = Buffer.byteLength(html, 'utf-8');

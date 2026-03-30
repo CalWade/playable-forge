@@ -48,6 +48,8 @@ export async function GET(
 
     const result = synthesize(version.skeletonHtml, slotAssets);
 
+    console.log(`[Preview] Project ${params.id}: ${slotAssets.size} slot assets loaded, ${result.replacedSlots.length} replaced, ${result.unreplacedSlots.length} unreplaced. Unreplaced: ${result.unreplacedSlots.join(', ') || 'none'}`);
+
     return new Response(result.html, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
