@@ -71,7 +71,7 @@ export async function GET(
     const avgVariantSize =
       dimensions.length > 0
         ? dimensions.reduce((s, d) => {
-            const avg = d.assets.length > 0 ? d.assets.reduce((ss, _) => ss + 50000, 0) / d.assets.length : 0;
+            const avg = d.assets.length > 0 ? d.assets.reduce((ss) => ss + 50000, 0) / d.assets.length : 0;
             return s + avg;
           }, 0)
         : 0;

@@ -31,12 +31,6 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
     fetcher
   );
 
-  const { data: msgData, mutate: refreshMessages } = useSWR(
-    token ? `/api/projects/${projectId}/assets?_conv=1` : null,
-    fetcher,
-    { refreshInterval: 0 }
-  );
-
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
 
   // Handle SSE completion

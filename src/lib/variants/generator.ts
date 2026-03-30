@@ -51,7 +51,6 @@ export function buildVariantName(
   const parts: string[] = [];
   for (const dim of dimensions) {
     if (combo[dim.name]) {
-      const asset = dim.assets.find((a) => a.id === combo[dim.name]);
       const idx = dim.assets.findIndex((a) => a.id === combo[dim.name]) + 1;
       parts.push(`${dim.name}${idx}`);
     }

@@ -1,7 +1,7 @@
 import { streamText, generateText } from 'ai';
 import { getModel } from './provider';
 import { GENERATE_SYSTEM_PROMPT, ITERATE_SYSTEM_PROMPT } from './prompts';
-import { withRetry } from './retry';
+// retry available: import { withRetry } from './retry';
 
 interface AssetMetadata {
   originalName: string;

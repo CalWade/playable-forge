@@ -124,7 +124,7 @@ export default function VariantsPage() {
             {configLoading ? (
               <div className="py-4 text-center text-sm text-gray-400">加载中...</div>
             ) : dimensions.length === 0 ? (
-              <p className="text-sm text-gray-400">没有标记为"参与变体"的素材</p>
+              <p className="text-sm text-gray-400">没有标记为&ldquo;参与变体&rdquo;的素材</p>
             ) : (
               <div className="space-y-3">
                 {dimensions.map((d: { name: string; label: string; assets: Array<{ id: string; thumbnailUrl: string | null }> }) => (
@@ -136,7 +136,7 @@ export default function VariantsPage() {
                       {d.assets.map((a) => (
                         <div key={a.id} className="h-12 w-12 overflow-hidden rounded border border-blue-300 bg-gray-100">
                           {a.thumbnailUrl ? (
-                            <img src={a.thumbnailUrl} className="h-full w-full object-cover" />
+                            <img src={a.thumbnailUrl} alt="asset" className="h-full w-full object-cover" />
                           ) : (
                             <div className="flex h-full items-center justify-center text-xs text-gray-400">?</div>
                           )}

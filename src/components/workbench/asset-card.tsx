@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { SelectDropdown } from '@/components/ui/dropdown';
 import { useAuth } from '@/components/auth-provider';
 import { toast } from '@/components/ui/toast';
-import Image from 'next/image';
 
 interface Asset {
   id: string;
