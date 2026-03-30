@@ -1,0 +1,101 @@
+import sharp from 'sharp';
+import path from 'path';
+import fs from 'fs/promises';
+
+const DATA_DIR = process.env.DATA_DIR || './data';
+
+interface ProcessResult {
+  compressedPath: string;
+  compressedSize: number;
+  thumbnailPath: string;
+  width: number;
+  height: number;
+}
+
+export async function processImage(
+  inputPath: string,
+  projectId: string,
+  assetId: string
+): Promise<ProcessResult> {
+  const projectDir = path.join(DATA_DIR, 'uploads', projectId);
+  await fs.mkdir(projectDir, { recursive: true });
+
+  const thumbDir = projectDir;
+  const metadata = await sharp(inputPath).metadata();
+  const width = metadata.width || 0;
+  const height = metadata.height || 0;
+
+  // Compress: keep format, reduce quality
+  const ext = path.extname(inputPath).toLowerCase();
+  const compressedPath = path.join(projectDir, `${assetId}-compressed${ext}`);
+
+  const maxWidth = 1920;
+  let pipeline = sharp(inputPath);
+
+  if (width > maxWidth) {
+    pipeline = pipeline.resize(maxWidth, undefined, { withoutEnlargement: true });
+  }
+
+  if (ext === '.png') {
+    pipeline = pipeline.png({ quality: 80, compressionLevel: 9 });
+  } else if (ext === '.webp') {
+    pipeline = pipeline.webp({ quality: 80 });
+  } else if (ext === '.gif') {
+    // GIF: just copy, sharp gif support is limited
+    await fs.copyFile(inputPath, compressedPath);
+  } else {
+    // Default to JPEG
+    pipeline = pipeline.jpeg({ quality: 80 });
+  }
+
+  if (ext !== '.gif') {
+    await pipeline.toFile(compressedPath);
+  }
+
+  const compressedStats = await fs.stat(compressedPath);
+
+  // Thumbnail: 200x200 max, JPEG
+  const thumbnailPath = path.join(thumbDir, `${assetId}-thumbnail.jpg`);
+  await sharp(inputPath)
+    .resize(200, 200, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 70 })
+    .toFile(thumbnailPath);
+
+  return {
+    compressedPath,
+    compressedSize: compressedStats.size,
+    thumbnailPath,
+    width,
+    height,
+  };
+}
+
+export async function processAudio(
+  inputPath: string,
+  projectId: string,
+  assetId: string
+): Promise<{ compressedPath: string; compressedSize: number; duration: number }> {
+  const projectDir = path.join(DATA_DIR, 'uploads', projectId);
+  await fs.mkdir(projectDir, { recursive: true });
+
+  // For now, just copy audio (FFmpeg compression can be added later)
+  const ext = path.extname(inputPath).toLowerCase();
+  const compressedPath = path.join(projectDir, `${assetId}-compressed${ext}`);
+  await fs.copyFile(inputPath, compressedPath);
+
+  const stats = await fs.stat(compressedPath);
+
+  return {
+    compressedPath,
+    compressedSize: stats.size,
+    duration: 0, // TODO: get duration with ffprobe
+  };
+}
+
+export function isImage(mimeType: string): boolean {
+  return mimeType.startsWith('image/');
+}
+
+export function isAudio(mimeType: string): boolean {
+  return mimeType.startsWith('audio/');
+}
