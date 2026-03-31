@@ -19,7 +19,6 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
   const [description, setDescription] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isStreaming, lastEvent, startStream } = useSSE();
-  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   // Fetch versions
   const fetcher = async (url: string) => {
@@ -33,63 +32,39 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
     fetcher
   );
 
-  const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
+  // DB messages = persistent history
+  const { data: historyData, mutate: refreshHistory } = useSWR(
+    token ? `/api/projects/${projectId}/conversations` : null,
+    fetcher
+  );
+  const dbMessages: Array<{ role: string; content: string }> = (historyData?.messages || []).map(
+    (m: { role: string; content: string }) => ({ role: m.role, content: m.content })
+  );
 
-  // Load conversation history from DB on mount
-  useEffect(() => {
-    if (!token || historyLoaded) return;
-    fetch(`/api/projects/${projectId}/conversations`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.messages && data.messages.length > 0) {
-          const loaded = data.messages.map((m: { role: string; content: string }) => ({
-            role: m.role,
-            content: m.content,
-          }));
-          setMessages(loaded);
-        }
-        setHistoryLoaded(true);
-      })
-      .catch(() => setHistoryLoaded(true));
-  }, [token, projectId, historyLoaded]);
+  // Temp messages = SSE status updates (cleared after completion)
+  const [tempMessages, setTempMessages] = useState<Array<{ role: string; content: string }>>([]);
 
-  // Handle SSE events
+  // Combined messages for display
+  const allMessages = [...dbMessages, ...tempMessages];
+
+  // Handle SSE events — only write to tempMessages
   useEffect(() => {
     if (!lastEvent) return;
     
     if (lastEvent.event === 'complete') {
       const versionId = lastEvent.data.versionId as string;
       onVersionChange(versionId);
-      const grade = lastEvent.data.grade ? ` [校验: ${lastEvent.data.grade}级]` : '';
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: `✅ 已完成 (v${lastEvent.data.version})${grade}` },
-      ]);
+      // Clear temp messages and reload from DB (which now has the new messages)
+      setTempMessages([]);
+      refreshHistory();
       refreshConv();
-      // Refresh conversation history from DB
-      setHistoryLoaded(false);
-    } else if (lastEvent.event === 'validation') {
-      // Show validation report inline
-      const results = lastEvent.data.results as Array<{ name: string; level: string; passed: boolean; detail: string }>;
-      if (results) {
-        const lines = results.map((r) => 
-          `${r.passed ? '✅' : r.level === 'error' ? '❌' : '⚠️'} ${r.name}: ${r.detail}`
-        );
-        setMessages((prev) => [
-          ...prev,
-          { role: 'system', content: `📋 校验报告 (${lastEvent.data.grade}级)\n${lines.join('\n')}` },
-        ]);
-      }
     } else if (lastEvent.event === 'error') {
-      setMessages((prev) => [
+      setTempMessages((prev) => [
         ...prev,
         { role: 'system', content: `❌ 错误: ${lastEvent.data.message}` },
       ]);
     } else if (lastEvent.event === 'status') {
-      setMessages((prev) => {
-        // Replace last status message if exists, otherwise add
+      setTempMessages((prev) => {
         const lastMsg = prev[prev.length - 1];
         if (lastMsg && lastMsg.role === 'status') {
           return [...prev.slice(0, -1), { role: 'status', content: lastEvent.data.message as string }];
@@ -97,15 +72,15 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
         return [...prev, { role: 'status', content: lastEvent.data.message as string }];
       });
     }
-  }, [lastEvent, onVersionChange, refreshConv]);
+  }, [lastEvent, onVersionChange, refreshConv, refreshHistory]);
 
   // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [allMessages.length]);
 
   const handleGenerate = async () => {
-    setMessages((prev) => [...prev, { role: 'system', content: description ? `正在生成初稿... (描述: ${description})` : '正在生成初稿...' }]);
+    setTempMessages([{ role: 'status', content: '🔍 正在生成初稿...' }]);
     await startStream(`/api/projects/${projectId}/generate`, {
       method: 'POST',
       body: JSON.stringify({ description: description || undefined }),
@@ -117,7 +92,8 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
     if (!input.trim() || isStreaming) return;
     const msg = input.trim();
     setInput('');
-    setMessages((prev) => [...prev, { role: 'user', content: msg }]);
+    // Show user message immediately as temp, DB will persist it
+    setTempMessages([{ role: 'user', content: msg }, { role: 'status', content: '🛠️ 正在修改...' }]);
 
     await startStream(`/api/projects/${projectId}/iterate`, {
       method: 'POST',
@@ -141,7 +117,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
             <div className="flex flex-1 flex-col" style={{ height: 'calc(100vh - 140px)' }}>
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {messages.length === 0 && !hasVersion && (
+                {allMessages.length === 0 && !hasVersion && (
                   <div className="flex flex-col items-center justify-center py-8 px-4">
                     <p className="mb-4 text-sm text-gray-500 font-medium">上传素材后，描述你想要的广告效果</p>
                     <textarea
@@ -160,7 +136,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
                     </button>
                   </div>
                 )}
-                {messages.map((msg, i) => (
+                {allMessages.map((msg, i) => (
                   <div
                     key={i}
                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -222,7 +198,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
                               body: formData,
                             });
                             if (res.ok) {
-                              setMessages((prev) => [
+                              setTempMessages((prev) => [
                                 ...prev,
                                 { role: 'system', content: `📎 已追加素材: ${file.name}` },
                               ]);
