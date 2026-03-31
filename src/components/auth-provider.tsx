@@ -100,17 +100,3 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
-
-export function useAuthFetch() {
-  const { token } = useAuth();
-  return async (url: string, options?: RequestInit) => {
-    const headers: Record<string, string> = {
-      ...(options?.headers as Record<string, string>),
-    };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    if (!headers['Content-Type'] && !(options?.body instanceof FormData)) {
-      headers['Content-Type'] = 'application/json';
-    }
-    return fetch(url, { ...options, headers });
-  };
-}
