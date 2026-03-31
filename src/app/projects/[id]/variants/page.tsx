@@ -219,6 +219,47 @@ export default function VariantsPage() {
                     : ''}
                   <span className="text-2xl">{totalCombinations}</span> 个变体
                 </div>
+
+                {/* Upload variant assets */}
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600">
+                    <span>+ 追加变体素材</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const files = e.target.files;
+                        if (!files || files.length === 0) return;
+                        const formData = new FormData();
+                        Array.from(files).forEach((f) => formData.append('files', f));
+                        try {
+                          const res = await fetch(`/api/projects/${projectId}/assets/upload`, {
+                            method: 'POST',
+                            headers: { Authorization: `Bearer ${token}` },
+                            body: formData,
+                          });
+                          if (res.ok) {
+                            const data = await res.json();
+                            // Mark all uploaded assets as variant
+                            for (const asset of data.assets) {
+                              await fetch(`/api/projects/${projectId}/assets/${asset.id}`, {
+                                method: 'PATCH',
+                                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ variantRole: 'variant' }),
+                              });
+                            }
+                            // Refresh config
+                            window.location.reload();
+                          }
+                        } catch { /* ignore */ }
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                  <p className="mt-1 text-xs text-gray-400">上传的素材自动标记为变体，不影响骨架生成</p>
+                </div>
               </div>
             )}
           </Card>
