@@ -1,5 +1,6 @@
 import { generateText } from 'ai';
 import { getModel } from './provider';
+import { inferFromFile } from '@/lib/assets/classifier';
 import type { AssetMetadata, ClassificationResult } from '@/types';
 
 const CLASSIFY_SYSTEM_PROMPT = `你是一个 Playable Ad 素材分类专家。根据给定的素材文件信息，判断每个素材在广告中的角色。
@@ -32,56 +33,17 @@ type AssetInfo = Pick<AssetMetadata, 'originalName' | 'mimeType' | 'width' | 'he
 };
 
 /**
- * Simple filename-based classification fallback (no AI needed)
+ * Filename-based classification fallback using shared classifier
  */
 function classifyByFilename(asset: AssetInfo): ClassificationResult {
-  const name = asset.originalName.toLowerCase();
-  const mime = asset.mimeType.toLowerCase();
-
-  let category: ClassificationResult['category'] = 'unrecognized';
-  let role: ClassificationResult['suggestedVariantRole'] = 'fixed';
-  let slotName = 'unrecognized';
-
-  if (mime.startsWith('audio/')) {
-    category = 'audio';
-    slotName = 'bgm';
-  } else if (name.includes('背景') || name.includes('bg') || name.includes('background')) {
-    category = 'background';
-    slotName = 'background';
-    role = 'variant';
-  } else if (name.includes('弹窗') || name.includes('popup') || name.includes('dialog') || name.includes('win') || name.includes('card')) {
-    category = 'popup';
-    slotName = 'popup';
-    role = 'variant';
-  } else if (name.includes('按钮') || name.includes('btn') || name.includes('button') || name.includes('cta') || name.includes('download') || name.includes('play')) {
-    category = 'button';
-    slotName = 'button';
-  } else if (name.includes('icon') || name.includes('图标') || name.includes('star') || name.includes('logo') || name.includes('finger') || name.includes('手指')) {
-    category = 'icon';
-    slotName = 'icon';
-  } else if (name.includes('效果') || name.includes('参考') || name.includes('reference') || name.includes('mockup')) {
-    category = 'reference';
-    slotName = 'reference';
-    role = 'excluded';
-  } else if (mime.startsWith('image/') && asset.width && asset.height) {
-    // Guess by dimensions
-    if (asset.width >= 750) {
-      category = 'background';
-      slotName = 'background';
-      role = 'variant';
-    } else if (asset.width < 200 && asset.height! < 200) {
-      category = 'icon';
-      slotName = 'icon';
-    }
-  }
-
+  const inferred = inferFromFile(asset);
   return {
     fileName: asset.originalName,
-    category,
+    category: inferred.category,
     confidence: 0.5,
-    suggestedSlotName: slotName,
-    suggestedVariantRole: role,
-    suggestedVariantGroup: category !== 'unrecognized' ? category : undefined,
+    suggestedSlotName: inferred.slotName,
+    suggestedVariantRole: inferred.variantRole,
+    suggestedVariantGroup: inferred.variantGroup,
   };
 }
 

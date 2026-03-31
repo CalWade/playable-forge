@@ -1,6 +1,7 @@
 import { streamText, generateText } from 'ai';
 import { getModel } from './provider';
 import { GENERATE_SYSTEM_PROMPT, ITERATE_SYSTEM_PROMPT } from './prompts';
+import { inferSlotName } from '@/lib/assets/classifier';
 import type { AssetMetadata } from '@/types';
 
 interface GenerateParams {
@@ -9,32 +10,10 @@ interface GenerateParams {
   description?: string;
 }
 
-function inferSlotName(asset: AssetMetadata): string {
-  // If slotName is already meaningful, use it
-  if (asset.slotName && asset.slotName !== 'unrecognized') {
-    return asset.slotName;
-  }
-  
-  // Infer from category
-  if (asset.category && asset.category !== 'unrecognized') {
-    return asset.category;
-  }
-  
-  // Infer from filename
-  const name = asset.originalName.toLowerCase();
-  if (name.includes('背景') || name.includes('bg') || name.includes('background')) return 'background';
-  if (name.includes('弹窗') || name.includes('popup') || name.includes('dialog')) return 'popup';
-  if (name.includes('按钮') || name.includes('btn') || name.includes('button')) return 'button';
-  if (name.includes('图标') || name.includes('icon') || name.includes('logo')) return 'icon';
-  if (asset.mimeType.startsWith('audio/')) return 'bgm';
-  
-  // Infer from dimensions for images
-  if (asset.mimeType.startsWith('image/') && asset.width && asset.height) {
-    if (asset.width >= 750) return 'background';
-    if (asset.width < 200) return 'icon';
-  }
-  
-  return 'background'; // safe default for images
+function getSlotName(a: AssetMetadata): string {
+  if (a.slotName && a.slotName !== 'unrecognized') return a.slotName;
+  if (a.category && a.category !== 'unrecognized') return a.category;
+  return inferSlotName(a);
 }
 
 function buildAssetList(assets: AssetMetadata[]): string {
@@ -42,7 +21,7 @@ function buildAssetList(assets: AssetMetadata[]): string {
     .filter((a) => a.variantRole !== 'excluded')
     .map(
       (a) =>
-        `- ${a.originalName} | 分类: ${a.category} | slot: ${inferSlotName(a)} | ${
+        `- ${a.originalName} | 分类: ${a.category} | slot: ${getSlotName(a)} | ${
           a.width && a.height ? `${a.width}x${a.height}` : '尺寸未知'
         } | ${a.mimeType}`
     )
