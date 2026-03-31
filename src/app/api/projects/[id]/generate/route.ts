@@ -72,6 +72,15 @@ export async function POST(
             encoder.encode(sseEvent('status', { step: 'understanding', message: '🔍 正在理解素材和意图...' }))
           );
 
+          // Save user's generate request as conversation message
+          await prisma.conversationMessage.create({
+            data: {
+              projectId,
+              role: 'user',
+              content: description ? `生成初稿：${description}` : '生成初稿',
+            },
+          });
+
           // Step 2: Generating
           controller.enqueue(
             encoder.encode(sseEvent('status', { step: 'generating', message: '🛠️ 正在生成 HTML 骨架...' }))
@@ -147,6 +156,16 @@ export async function POST(
           await prisma.project.update({
             where: { id: projectId },
             data: { status: 'in_progress' },
+          });
+
+          // Save assistant message
+          await prisma.conversationMessage.create({
+            data: {
+              projectId,
+              role: 'assistant',
+              content: `已生成初稿 (v${newVersion})，校验等级: ${validation.grade}${fixAttempt > 0 ? `，自动修复 ${fixAttempt} 次` : ''}`,
+              versionId: version.id,
+            },
           });
 
           const hasErrors = validation.results.some((r) => r.level === 'error' && !r.passed);

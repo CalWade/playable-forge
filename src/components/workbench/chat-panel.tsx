@@ -19,8 +19,9 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
   const [description, setDescription] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isStreaming, lastEvent, startStream } = useSSE();
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
-  // Fetch conversation history
+  // Fetch versions
   const fetcher = async (url: string) => {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) throw new Error('Failed');
@@ -33,6 +34,26 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
   );
 
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
+
+  // Load conversation history from DB on mount
+  useEffect(() => {
+    if (!token || historyLoaded) return;
+    fetch(`/api/projects/${projectId}/conversations`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.messages && data.messages.length > 0) {
+          const loaded = data.messages.map((m: { role: string; content: string }) => ({
+            role: m.role,
+            content: m.content,
+          }));
+          setMessages(loaded);
+        }
+        setHistoryLoaded(true);
+      })
+      .catch(() => setHistoryLoaded(true));
+  }, [token, projectId, historyLoaded]);
 
   // Handle SSE events
   useEffect(() => {
@@ -47,6 +68,8 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
         { role: 'assistant', content: `✅ 已完成 (v${lastEvent.data.version})${grade}` },
       ]);
       refreshConv();
+      // Refresh conversation history from DB
+      setHistoryLoaded(false);
     } else if (lastEvent.event === 'validation') {
       // Show validation report inline
       const results = lastEvent.data.results as Array<{ name: string; level: string; passed: boolean; detail: string }>;
