@@ -140,24 +140,12 @@ export async function POST(
       console.error('Classification failed, assets remain unrecognized:', classifyError);
     }
 
-    // Estimate HTML size: fixed assets + one asset per variant group
-    const fixedAssets = await prisma.asset.findMany({
-      where: { projectId, variantRole: 'fixed' },
+    // Estimate HTML size: only count initial (non-excluded) assets
+    const allInitialAssets = await prisma.asset.findMany({
+      where: { projectId, variantRole: { not: 'excluded' } },
       select: { compressedSize: true },
     });
-    const variantAssets = await prisma.asset.findMany({
-      where: { projectId, variantRole: 'variant' },
-      select: { compressedSize: true, variantGroup: true },
-    });
-    // For each variant group, take the largest asset as estimate
-    const groupMaxSizes = new Map<string, number>();
-    for (const a of variantAssets) {
-      const group = a.variantGroup || 'default';
-      const size = a.compressedSize || 0;
-      groupMaxSizes.set(group, Math.max(groupMaxSizes.get(group) || 0, size));
-    }
-    let baseSize = fixedAssets.reduce((sum, a) => sum + (a.compressedSize || 0), 0);
-    groupMaxSizes.forEach((size) => { baseSize += size; });
+    const baseSize = allInitialAssets.reduce((sum, a) => sum + (a.compressedSize || 0), 0);
     const estimatedHtmlSize = Math.ceil(baseSize * 1.37); // base64 overhead
 
     return Response.json({

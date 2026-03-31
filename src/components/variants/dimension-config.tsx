@@ -93,23 +93,14 @@ export function DimensionConfig({
                         if (!files || files.length === 0) return;
                         const formData = new FormData();
                         Array.from(files).forEach((f) => formData.append('files', f));
+                        formData.append('dimensionGroup', d.name);
                         try {
-                          const res = await fetch(`/api/projects/${projectId}/assets/upload`, {
+                          const res = await fetch(`/api/projects/${projectId}/variant-assets`, {
                             method: 'POST',
                             headers: { Authorization: `Bearer ${token}` },
                             body: formData,
                           });
-                          if (res.ok) {
-                            const data = await res.json();
-                            for (const asset of data.assets) {
-                              await fetch(`/api/projects/${projectId}/assets/${asset.id}`, {
-                                method: 'PATCH',
-                                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ variantRole: 'variant', variantGroup: d.name, slotName: d.name }),
-                              });
-                            }
-                            window.location.reload();
-                          }
+                          if (res.ok) window.location.reload();
                         } catch { /* ignore */ }
                         e.target.value = '';
                       }}
@@ -142,29 +133,12 @@ export function DimensionConfig({
                   const formData = new FormData();
                   Array.from(files).forEach((f) => formData.append('files', f));
                   try {
-                    const res = await fetch(`/api/projects/${projectId}/assets/upload`, {
+                    const res = await fetch(`/api/projects/${projectId}/variant-assets`, {
                       method: 'POST',
                       headers: { Authorization: `Bearer ${token}` },
                       body: formData,
                     });
-                    if (res.ok) {
-                      const data = await res.json();
-                      for (const asset of data.assets) {
-                        const name = asset.originalName?.toLowerCase() || '';
-                        let group = 'background';
-                        if (name.includes('弹窗') || name.includes('popup') || name.includes('dialog')) group = 'popup';
-                        else if (name.includes('按钮') || name.includes('btn') || name.includes('button')) group = 'button';
-                        else if (name.includes('图标') || name.includes('icon')) group = 'icon';
-                        else if (asset.mimeType?.startsWith('audio/')) group = 'bgm';
-
-                        await fetch(`/api/projects/${projectId}/assets/${asset.id}`, {
-                          method: 'PATCH',
-                          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ variantRole: 'variant', variantGroup: group, slotName: group }),
-                        });
-                      }
-                      window.location.reload();
-                    }
+                    if (res.ok) window.location.reload();
                   } catch { /* ignore */ }
                   e.target.value = '';
                 }}

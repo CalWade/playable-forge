@@ -93,6 +93,7 @@ export async function DELETE(
 
     // Cascade delete in DB
     await prisma.variant.deleteMany({ where: { projectId: params.id } });
+    await prisma.variantAsset.deleteMany({ where: { projectId: params.id } });
     await prisma.conversationMessage.deleteMany({ where: { projectId: params.id } });
     await prisma.htmlVersion.deleteMany({ where: { projectId: params.id } });
     await prisma.asset.deleteMany({ where: { projectId: params.id } });

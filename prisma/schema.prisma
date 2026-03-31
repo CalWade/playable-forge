@@ -34,6 +34,7 @@ model Project {
 
   user          User                  @relation(fields: [userId], references: [id])
   assets        Asset[]
+  variantAssets VariantAsset[]
   versions      HtmlVersion[]
   variants      Variant[]
   conversations ConversationMessage[]
@@ -63,6 +64,30 @@ model Asset {
   variantRole  String  @default("fixed")
   variantGroup String?
   slotName     String?
+
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+// ==================== 变体素材（独立于 AI 流程）====================
+
+model VariantAsset {
+  id             String  @id @default(cuid())
+  projectId      String
+  fileName       String
+  originalName   String
+  mimeType       String
+  fileSize       Int
+  compressedSize Int?
+  width          Int?
+  height         Int?
+  filePath       String
+  thumbnailPath  String?
+  base64CachePath String?
+
+  slotName       String    // 对应骨架中的 data-variant-slot 值
+  dimensionGroup String    // 变体维度分组（如 "background", "popup"）
 
   createdAt DateTime @default(now())
 
