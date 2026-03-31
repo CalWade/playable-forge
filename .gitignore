@@ -36,3 +36,16 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# PlayableForge data
+/data/
+/prisma/dev.db
+/prisma/dev.db-journal
+*.db
+*.db-journal
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

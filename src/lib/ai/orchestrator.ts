@@ -2,6 +2,7 @@ import { streamText, generateText } from 'ai';
 import { getModel } from './provider';
 import { GENERATE_SYSTEM_PROMPT, ITERATE_SYSTEM_PROMPT } from './prompts';
 import { inferSlotName } from '@/lib/assets/classifier';
+import { getSettings } from '@/lib/settings';
 import type { AssetMetadata } from '@/types';
 
 interface GenerateParams {
@@ -14,6 +15,16 @@ function getSlotName(a: AssetMetadata): string {
   if (a.slotName && a.slotName !== 'unrecognized') return a.slotName;
   if (a.category && a.category !== 'unrecognized') return a.category;
   return inferSlotName(a);
+}
+
+async function getSystemPrompt(defaultPrompt: string): Promise<string> {
+  try {
+    const settings = await getSettings();
+    if (settings.ai.systemPromptOverride?.trim()) {
+      return settings.ai.systemPromptOverride;
+    }
+  } catch { /* use default */ }
+  return defaultPrompt;
 }
 
 function buildAssetList(assets: AssetMetadata[]): string {
@@ -45,7 +56,7 @@ export async function generateSkeleton(params: GenerateParams) {
 
   const result = streamText({
     model: getModel(),
-    system: GENERATE_SYSTEM_PROMPT,
+    system: await getSystemPrompt(GENERATE_SYSTEM_PROMPT),
     prompt: textPrompt,
     maxOutputTokens: 16000,
   });
@@ -76,7 +87,7 @@ export async function iterateSkeleton(params: IterateParams) {
 
   const result = streamText({
     model: getModel(),
-    system: ITERATE_SYSTEM_PROMPT,
+    system: await getSystemPrompt(ITERATE_SYSTEM_PROMPT),
     messages,
     maxOutputTokens: 16000,
   });
@@ -90,7 +101,7 @@ export async function autofixSkeleton(
 ): Promise<string> {
   const result = await generateText({
     model: getModel(),
-    system: ITERATE_SYSTEM_PROMPT,
+    system: await getSystemPrompt(ITERATE_SYSTEM_PROMPT),
     prompt: `以下 HTML 校验未通过，请修复这些问题：\n\n校验失败项：\n${failedItems
       .map((f) => `- ${f}`)
       .join('\n')}\n\n当前 HTML：\n\`\`\`html\n${skeleton}\n\`\`\`\n\n请仅返回修复后的完整 HTML 代码。`,
