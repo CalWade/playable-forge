@@ -97,11 +97,20 @@ export function AssetCard({ asset, projectId, onUpdate, token }: AssetCardProps)
         </Badge>
       </div>
 
-      {/* File name */}
+      {/* File name + size comparison */}
       <p className="truncate text-xs text-gray-600" title={asset.originalName}>
         {asset.originalName}
       </p>
-      <p className="text-[10px] text-gray-400">{sizeKB} KB</p>
+      <div className="flex items-center gap-1 text-[10px] text-gray-400">
+        <span>{(asset.fileSize / 1024).toFixed(0)}KB</span>
+        {asset.compressedSize && asset.compressedSize < asset.fileSize && (
+          <>
+            <span>→</span>
+            <span className="text-green-600">{(asset.compressedSize / 1024).toFixed(0)}KB</span>
+            <span className="text-green-600">(-{Math.round((1 - asset.compressedSize / asset.fileSize) * 100)}%)</span>
+          </>
+        )}
+      </div>
 
       {/* Controls (visible on hover) */}
       <div className="mt-1 space-y-1 opacity-0 transition-opacity group-hover:opacity-100">

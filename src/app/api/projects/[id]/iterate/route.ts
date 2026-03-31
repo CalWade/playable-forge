@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAuth, handleAuthError } from '@/lib/auth/middleware';
 import { iterateSkeleton, extractHtml } from '@/lib/ai/orchestrator';
+import { validate } from '@/lib/validation/engine';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,7 +32,6 @@ export async function POST(
       return Response.json({ error: 'Message required' }, { status: 400 });
     }
 
-    // Get latest version skeleton
     const latestVersion = await prisma.htmlVersion.findFirst({
       where: { projectId },
       orderBy: { version: 'desc' },
@@ -40,7 +40,6 @@ export async function POST(
       return Response.json({ error: 'No version exists yet' }, { status: 400 });
     }
 
-    // Get conversation history
     const history = await prisma.conversationMessage.findMany({
       where: { projectId },
       orderBy: { createdAt: 'asc' },
@@ -48,12 +47,10 @@ export async function POST(
       select: { role: true, content: true },
     });
 
-    // Save user message
     await prisma.conversationMessage.create({
       data: { projectId, role: 'user', content: userMessage },
     });
 
-    // Update iteration count
     await prisma.projectStats.upsert({
       where: { projectId },
       update: { iterationCount: { increment: 1 } },
@@ -65,15 +62,12 @@ export async function POST(
       async start(controller) {
         try {
           controller.enqueue(
-            encoder.encode(sseEvent('status', { step: 'generating', message: '正在修改...' }))
+            encoder.encode(sseEvent('status', { step: 'generating', message: '🛠️ 正在修改...' }))
           );
 
           const convHistory = history
             .filter((m) => m.role === 'user' || m.role === 'assistant')
-            .map((m) => ({
-              role: m.role as 'user' | 'assistant',
-              content: m.content,
-            }));
+            .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }));
 
           const result = await iterateSkeleton({
             currentSkeleton: latestVersion.skeletonHtml,
@@ -88,7 +82,12 @@ export async function POST(
 
           const skeleton = extractHtml(fullText);
 
-          // Save new version
+          // Auto-validate after iteration
+          controller.enqueue(
+            encoder.encode(sseEvent('status', { step: 'validating', message: '✅ 正在校验修改结果...' }))
+          );
+          const validation = validate(skeleton);
+
           const maxV = await prisma.htmlVersion.findFirst({
             where: { projectId },
             orderBy: { version: 'desc' },
@@ -101,22 +100,49 @@ export async function POST(
               projectId,
               version: newVersion,
               skeletonHtml: skeleton,
+              validationGrade: validation.grade,
+              validationJson: JSON.stringify(validation.results),
               aiModel: process.env.AI_MODEL || 'gpt-4o',
             },
           });
 
-          // Save assistant message
           await prisma.conversationMessage.create({
             data: {
               projectId,
               role: 'assistant',
-              content: '已根据您的要求修改了 HTML。',
+              content: `已根据您的要求修改了 HTML。校验等级: ${validation.grade}`,
               versionId: version.id,
             },
           });
 
+          // Send validation results
           controller.enqueue(
-            encoder.encode(sseEvent('complete', { versionId: version.id, version: newVersion }))
+            encoder.encode(sseEvent('validation', {
+              grade: validation.grade,
+              results: validation.results,
+            }))
+          );
+
+          // Warn if validation degraded
+          const hasErrors = validation.results.some((r) => r.level === 'error' && !r.passed);
+          if (hasErrors) {
+            const failedNames = validation.results
+              .filter((r) => r.level === 'error' && !r.passed)
+              .map((r) => r.name);
+            controller.enqueue(
+              encoder.encode(sseEvent('status', {
+                step: 'warning',
+                message: `⚠️ 修改后校验不通过: ${failedNames.join(', ')}`,
+              }))
+            );
+          }
+
+          controller.enqueue(
+            encoder.encode(sseEvent('complete', {
+              versionId: version.id,
+              version: newVersion,
+              grade: validation.grade,
+            }))
           );
         } catch (error) {
           console.error('Iterate error:', error);

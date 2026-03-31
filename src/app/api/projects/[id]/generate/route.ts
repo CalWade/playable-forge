@@ -1,11 +1,14 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAuth, handleAuthError } from '@/lib/auth/middleware';
-import { generateSkeleton, extractHtml } from '@/lib/ai/orchestrator';
+import { generateSkeleton, extractHtml, autofixSkeleton } from '@/lib/ai/orchestrator';
 import { readBase64 } from '@/lib/assets/base64';
+import { validate } from '@/lib/validation/engine';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const MAX_AUTO_FIX = 3;
 
 function sseEvent(event: string, data: unknown): string {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
@@ -34,30 +37,22 @@ export async function POST(
       // empty body ok
     }
 
-    // Get assets
-    const assets = await prisma.asset.findMany({
-      where: { projectId },
-    });
+    const assets = await prisma.asset.findMany({ where: { projectId } });
 
     if (assets.length === 0) {
       return Response.json({ error: 'No assets uploaded' }, { status: 400 });
     }
 
     // Get reference images base64
-    const referenceAssets = assets.filter((a) => a.category === 'reference');
     const referenceImageBase64: string[] = [];
-    for (const ref of referenceAssets) {
+    for (const ref of assets.filter((a) => a.category === 'reference')) {
       if (ref.base64CachePath) {
         try {
-          const b64 = await readBase64(ref.base64CachePath);
-          referenceImageBase64.push(b64);
-        } catch {
-          // skip
-        }
+          referenceImageBase64.push(await readBase64(ref.base64CachePath));
+        } catch { /* skip */ }
       }
     }
 
-    // Build asset metadata
     const assetMetadata = assets.map((a) => ({
       originalName: a.originalName,
       category: a.category,
@@ -68,19 +63,18 @@ export async function POST(
       mimeType: a.mimeType,
     }));
 
-    // SSE stream
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         try {
           // Step 1: Understanding
           controller.enqueue(
-            encoder.encode(sseEvent('status', { step: 'understanding', message: '正在理解素材和意图...' }))
+            encoder.encode(sseEvent('status', { step: 'understanding', message: '🔍 正在理解素材和意图...' }))
           );
 
           // Step 2: Generating
           controller.enqueue(
-            encoder.encode(sseEvent('status', { step: 'generating', message: '正在生成 HTML 骨架...' }))
+            encoder.encode(sseEvent('status', { step: 'generating', message: '🛠️ 正在生成 HTML 骨架...' }))
           );
 
           const result = await generateSkeleton({
@@ -92,14 +86,45 @@ export async function POST(
           let fullText = '';
           for await (const chunk of result.textStream) {
             fullText += chunk;
-            controller.enqueue(
-              encoder.encode(sseEvent('progress', { percent: Math.min(90, fullText.length / 100) }))
-            );
           }
 
-          const skeleton = extractHtml(fullText);
+          let skeleton = extractHtml(fullText);
 
-          // Get current max version
+          // Step 3: Validate
+          controller.enqueue(
+            encoder.encode(sseEvent('status', { step: 'validating', message: '✅ 正在校验生成结果...' }))
+          );
+
+          let validation = validate(skeleton);
+
+          // Step 4: Auto-fix loop (up to 3 attempts)
+          let fixAttempt = 0;
+          while (
+            fixAttempt < MAX_AUTO_FIX &&
+            validation.results.some((r) => r.level === 'error' && !r.passed)
+          ) {
+            fixAttempt++;
+            const failedItems = validation.results
+              .filter((r) => !r.passed)
+              .map((r) => `${r.name}: ${r.detail}`);
+
+            controller.enqueue(
+              encoder.encode(sseEvent('status', {
+                step: 'fixing',
+                message: `🔧 校验未通过，正在自动修复 (${fixAttempt}/${MAX_AUTO_FIX})...`,
+              }))
+            );
+
+            try {
+              skeleton = await autofixSkeleton(skeleton, failedItems);
+              validation = validate(skeleton);
+            } catch (fixError) {
+              console.error(`Auto-fix attempt ${fixAttempt} failed:`, fixError);
+              break;
+            }
+          }
+
+          // Save version
           const maxVersion = await prisma.htmlVersion.findFirst({
             where: { projectId },
             orderBy: { version: 'desc' },
@@ -107,45 +132,66 @@ export async function POST(
           });
           const newVersion = (maxVersion?.version || 0) + 1;
 
-          // Save version
           const version = await prisma.htmlVersion.create({
             data: {
               projectId,
               version: newVersion,
               skeletonHtml: skeleton,
+              validationGrade: validation.grade,
+              validationJson: JSON.stringify(validation.results),
               aiModel: process.env.AI_MODEL || 'gpt-4o',
             },
           });
 
-          // Update project status
+          // Update project status & stats
           await prisma.project.update({
             where: { id: projectId },
             data: { status: 'in_progress' },
           });
 
+          const hasErrors = validation.results.some((r) => r.level === 'error' && !r.passed);
+          await prisma.projectStats.upsert({
+            where: { projectId },
+            update: { firstPassValidation: !hasErrors },
+            create: { projectId, firstPassValidation: !hasErrors },
+          });
+
+          // Send validation result
           controller.enqueue(
-            encoder.encode(
-              sseEvent('skeleton', { versionId: version.id, version: newVersion })
-            )
+            encoder.encode(sseEvent('validation', {
+              grade: validation.grade,
+              results: validation.results,
+              fixAttempts: fixAttempt,
+            }))
           );
 
+          // If still has errors after auto-fix, notify but still complete
+          if (hasErrors) {
+            const failedNames = validation.results
+              .filter((r) => r.level === 'error' && !r.passed)
+              .map((r) => r.name);
+            controller.enqueue(
+              encoder.encode(sseEvent('status', {
+                step: 'manual_fix_needed',
+                message: `⚠️ 以下问题需要人工介入: ${failedNames.join(', ')}`,
+              }))
+            );
+          }
+
           controller.enqueue(
-            encoder.encode(
-              sseEvent('complete', {
-                versionId: version.id,
-                version: newVersion,
-              })
-            )
+            encoder.encode(sseEvent('complete', {
+              versionId: version.id,
+              version: newVersion,
+              grade: validation.grade,
+            }))
           );
         } catch (error) {
           console.error('Generate error:', error);
           controller.enqueue(
-            encoder.encode(
-              sseEvent('error', {
-                message: error instanceof Error ? error.message : 'Generation failed',
-                canRetry: true,
-              })
-            )
+            encoder.encode(sseEvent('error', {
+              message: error instanceof Error ? error.message : 'Generation failed',
+              canRetry: true,
+            }))
           );
         } finally {
           controller.close();
@@ -162,7 +208,6 @@ export async function POST(
     });
   } catch (error) {
     if ((error as Error).name === 'AuthError') return handleAuthError(error);
-    console.error('Generate route error:', error);
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

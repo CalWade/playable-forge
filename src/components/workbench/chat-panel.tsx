@@ -41,11 +41,24 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
     if (lastEvent.event === 'complete') {
       const versionId = lastEvent.data.versionId as string;
       onVersionChange(versionId);
+      const grade = lastEvent.data.grade ? ` [校验: ${lastEvent.data.grade}级]` : '';
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: `✅ 已完成 (v${lastEvent.data.version})` },
+        { role: 'assistant', content: `✅ 已完成 (v${lastEvent.data.version})${grade}` },
       ]);
       refreshConv();
+    } else if (lastEvent.event === 'validation') {
+      // Show validation report inline
+      const results = lastEvent.data.results as Array<{ name: string; level: string; passed: boolean; detail: string }>;
+      if (results) {
+        const lines = results.map((r) => 
+          `${r.passed ? '✅' : r.level === 'error' ? '❌' : '⚠️'} ${r.name}: ${r.detail}`
+        );
+        setMessages((prev) => [
+          ...prev,
+          { role: 'system', content: `📋 校验报告 (${lastEvent.data.grade}级)\n${lines.join('\n')}` },
+        ]);
+      }
     } else if (lastEvent.event === 'error') {
       setMessages((prev) => [
         ...prev,
@@ -169,6 +182,34 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
                       disabled={isStreaming}
                       className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    <label className="flex cursor-pointer items-center rounded-lg border border-gray-200 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const formData = new FormData();
+                          formData.append('files', file);
+                          try {
+                            const res = await fetch(`/api/projects/${projectId}/assets/upload`, {
+                              method: 'POST',
+                              headers: { Authorization: `Bearer ${token}` },
+                              body: formData,
+                            });
+                            if (res.ok) {
+                              setMessages((prev) => [
+                                ...prev,
+                                { role: 'system', content: `📎 已追加素材: ${file.name}` },
+                              ]);
+                            }
+                          } catch { /* ignore */ }
+                          e.target.value = '';
+                        }}
+                      />
+                      📎
+                    </label>
                     <button
                       onClick={handleSend}
                       disabled={isStreaming || !input.trim()}
@@ -185,22 +226,52 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
               {versions.map((v: { id: string; version: number; validationGrade: string | null; isLocked: boolean; createdAt: string }) => (
                 <div
                   key={v.id}
-                  onClick={() => onVersionChange(v.id)}
-                  className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
+                  className="rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
                 >
-                  <div>
-                    <span className="text-sm font-medium">v{v.version}</span>
-                    {v.isLocked && (
-                      <span className="ml-2 text-xs text-blue-600">🔒 已锁定</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {v.validationGrade && (
-                      <span className="text-xs text-gray-400">{v.validationGrade}</span>
-                    )}
-                    <span className="text-xs text-gray-400">
-                      {new Date(v.createdAt).toLocaleTimeString('zh-CN')}
-                    </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="cursor-pointer text-sm font-medium text-blue-600 hover:underline"
+                        onClick={() => onVersionChange(v.id)}
+                      >
+                        v{v.version}
+                      </span>
+                      {v.isLocked && (
+                        <span className="text-xs text-blue-600">🔒 已锁定</span>
+                      )}
+                      {v.validationGrade && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${
+                          v.validationGrade === 'A' ? 'bg-green-100 text-green-700' :
+                          v.validationGrade === 'B' ? 'bg-blue-100 text-blue-700' :
+                          v.validationGrade === 'C' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {v.validationGrade}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400">
+                        {new Date(v.createdAt).toLocaleTimeString('zh-CN')}
+                      </span>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            await fetch(`/api/projects/${projectId}/versions/${v.id}/rollback`, {
+                              method: 'POST',
+                              headers: { Authorization: `Bearer ${token}` },
+                            });
+                            refreshConv();
+                            onVersionChange(v.id);
+                          } catch { /* ignore */ }
+                        }}
+                        className="text-xs text-gray-400 hover:text-blue-600"
+                        title="回退到此版本"
+                      >
+                        ↩ 回退
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
