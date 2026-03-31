@@ -159,9 +159,20 @@ export default function ProjectWorkbenchPage() {
           <Button variant="outline" size="sm" onClick={handleLockSkeleton} disabled={!currentVersionId}>
             <Lock size={14} className="mr-1" /> 锁定骨架
           </Button>
-          <Button size="sm" onClick={() => router.push(`/projects/${projectId}/variants`)}>
-            生成变体 →
-          </Button>
+          <div className="flex items-center gap-2">
+            {currentVersionId && (
+              <a
+                href={`/api/projects/${projectId}/preview/${currentVersionId}?token=${token}`}
+                download="playable-ad.html"
+                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+              >
+                ⬇ 下载 HTML
+              </a>
+            )}
+            <Button size="sm" onClick={() => router.push(`/projects/${projectId}/variants`)}>
+              生成变体 →
+            </Button>
+          </div>
         </div>
       </div>
     </ProtectedRoute>
