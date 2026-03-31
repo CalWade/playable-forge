@@ -29,10 +29,6 @@ export function PreviewPanel({
   const [isLandscape, setIsLandscape] = useState(false);
   const [deviceIdx, setDeviceIdx] = useState(0);
 
-  const device = DEVICES[deviceIdx];
-  const iframeWidth = isLandscape ? device.height : device.width;
-  const iframeHeight = isLandscape ? device.width : device.height;
-
   const previewUrl = versionId
     ? `/api/projects/${projectId}/preview/${versionId}`
     : `/api/projects/${projectId}/preview`;
