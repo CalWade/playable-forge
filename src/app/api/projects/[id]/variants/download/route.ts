@@ -1,8 +1,12 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAuth, handleAuthError } from '@/lib/auth/middleware';
+import fs from 'fs/promises';
+import path from 'path';
 import archiver from 'archiver';
-import { Readable } from 'stream';
+import { createWriteStream } from 'fs';
+
+const DATA_DIR = process.env.DATA_DIR || './data';
 
 // GET /api/projects/[id]/variants/download
 export async function GET(
@@ -24,34 +28,40 @@ export async function GET(
       return new Response('No variants to download', { status: 404 });
     }
 
-    // Create ZIP archive
-    const archive = archiver('zip', { zlib: { level: 9 } });
+    // Write ZIP to temp file first
+    const zipDir = path.join(DATA_DIR, 'html', params.id);
+    await fs.mkdir(zipDir, { recursive: true });
+    const zipPath = path.join(zipDir, 'all-variants.zip');
 
-    for (const v of variants) {
-      if (v.fullHtmlPath) {
-        archive.file(v.fullHtmlPath, { name: `${v.name}.html` });
+    await new Promise<void>((resolve, reject) => {
+      const output = createWriteStream(zipPath);
+      const archive = archiver('zip', { zlib: { level: 6 } });
+
+      output.on('close', resolve);
+      archive.on('error', reject);
+
+      archive.pipe(output);
+
+      for (const v of variants) {
+        if (v.fullHtmlPath) {
+          archive.file(v.fullHtmlPath, { name: `${v.name}.html` });
+        }
       }
-    }
 
-    archive.finalize();
-
-    // Convert Node stream to Web ReadableStream
-    const nodeStream = Readable.from(archive);
-    const webStream = new ReadableStream({
-      start(controller) {
-        nodeStream.on('data', (chunk) => controller.enqueue(chunk));
-        nodeStream.on('end', () => controller.close());
-        nodeStream.on('error', (err) => controller.error(err));
-      },
+      archive.finalize();
     });
 
-    return new Response(webStream, {
+    const zipBuffer = await fs.readFile(zipPath);
+
+    return new Response(zipBuffer, {
       headers: {
         'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="${project.name}-variants.zip"`,
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(project.name)}-variants.zip"`,
+        'Content-Length': String(zipBuffer.length),
       },
     });
   } catch (error) {
+    console.error('Download error:', error);
     if ((error as Error).name === 'AuthError') return handleAuthError(error);
     return new Response('Internal server error', { status: 500 });
   }

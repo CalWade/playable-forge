@@ -201,13 +201,48 @@ export default function VariantsPage() {
                               }`}
                             >
                               {a.thumbnailUrl ? (
-                                <img src={a.thumbnailUrl} alt="asset" className="h-full w-full object-cover" />
+                                <img src={`${a.thumbnailUrl}?token=${token}`} alt="asset" className="h-full w-full object-cover" />
                               ) : (
                                 <div className="flex h-full items-center justify-center text-xs text-gray-400">?</div>
                               )}
                             </div>
                           );
                         })}
+                        {/* Per-dimension upload button */}
+                        <label className={`h-12 w-12 flex items-center justify-center rounded border-2 border-dashed border-gray-300 bg-white cursor-pointer hover:border-blue-400 hover:text-blue-600 text-gray-400 text-lg ${!isEnabled ? 'pointer-events-none' : ''}`}>
+                          +
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const files = e.target.files;
+                              if (!files || files.length === 0) return;
+                              const formData = new FormData();
+                              Array.from(files).forEach((f) => formData.append('files', f));
+                              try {
+                                const res = await fetch(`/api/projects/${projectId}/assets/upload`, {
+                                  method: 'POST',
+                                  headers: { Authorization: `Bearer ${token}` },
+                                  body: formData,
+                                });
+                                if (res.ok) {
+                                  const data = await res.json();
+                                  for (const asset of data.assets) {
+                                    await fetch(`/api/projects/${projectId}/assets/${asset.id}`, {
+                                      method: 'PATCH',
+                                      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ variantRole: 'variant', variantGroup: d.name, slotName: d.name }),
+                                    });
+                                  }
+                                  window.location.reload();
+                                }
+                              } catch { /* ignore */ }
+                              e.target.value = '';
+                            }}
+                          />
+                        </label>
                       </div>
                     </div>
                   );
@@ -220,14 +255,14 @@ export default function VariantsPage() {
                   <span className="text-2xl">{totalCombinations}</span> 个变体
                 </div>
 
-                {/* Upload variant assets */}
+                {/* Upload variant assets - auto-classify by filename */}
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600">
-                    <span>+ 追加变体素材</span>
+                    <span>+ 新增变体素材（自动分类）</span>
                     <input
                       type="file"
                       multiple
-                      accept="image/*"
+                      accept="image/*,audio/*"
                       className="hidden"
                       onChange={async (e) => {
                         const files = e.target.files;
@@ -242,15 +277,21 @@ export default function VariantsPage() {
                           });
                           if (res.ok) {
                             const data = await res.json();
-                            // Mark all uploaded assets as variant
                             for (const asset of data.assets) {
+                              // Auto-detect dimension from filename/category
+                              const name = asset.originalName?.toLowerCase() || '';
+                              let group = 'background';
+                              if (name.includes('弹窗') || name.includes('popup') || name.includes('dialog')) group = 'popup';
+                              else if (name.includes('按钮') || name.includes('btn') || name.includes('button')) group = 'button';
+                              else if (name.includes('图标') || name.includes('icon')) group = 'icon';
+                              else if (asset.mimeType?.startsWith('audio/')) group = 'bgm';
+
                               await fetch(`/api/projects/${projectId}/assets/${asset.id}`, {
                                 method: 'PATCH',
                                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ variantRole: 'variant' }),
+                                body: JSON.stringify({ variantRole: 'variant', variantGroup: group, slotName: group }),
                               });
                             }
-                            // Refresh config
                             window.location.reload();
                           }
                         } catch { /* ignore */ }
@@ -258,7 +299,7 @@ export default function VariantsPage() {
                       }}
                     />
                   </label>
-                  <p className="mt-1 text-xs text-gray-400">上传的素材自动标记为变体，不影响骨架生成</p>
+                  <p className="mt-1 text-xs text-gray-400">根据文件名自动归入维度（背景/弹窗/按钮），也可在每个维度旁的 + 按钮上传</p>
                 </div>
               </div>
             )}
