@@ -38,7 +38,7 @@ export function synthesize(
   }
 
   // Replace PLACEHOLDERs for each slot
-  // Strategy: find each element with data-variant-slot, then replace its src containing PLACEHOLDER
+  // Strategy: find each element with data-variant-slot, then replace its src value
   slotAssets.forEach((asset, slotName) => {
     const escapedSlot = escapeRegex(slotName);
     
@@ -48,31 +48,23 @@ export function synthesize(
       dataUri = `data:${asset.mimeType};base64,${dataUri}`;
     }
 
-    // Pattern 1: src="data:...;base64,PLACEHOLDER"
-    const pattern1 = new RegExp(
-      `(data-variant-slot="${escapedSlot}"[^>]*?src=")data:[^;]*;base64,PLACEHOLDER"`,
+    // Universal approach: match data-variant-slot="slotName" then replace the src value
+    // This handles ALL formats: PLACEHOLDER, 1x1 GIF, empty src, any placeholder
+    
+    // Pattern A: slot attr comes before src (most common)
+    const patternA = new RegExp(
+      `(data-variant-slot="${escapedSlot}"[^>]*?src=")([^"]*)"`,
       'g'
     );
-    // Pattern 2: src="PLACEHOLDER" (AI might use simple placeholder)
-    const pattern2 = new RegExp(
-      `(data-variant-slot="${escapedSlot}"[^>]*?src=")PLACEHOLDER"`,
-      'g'
-    );
-    // Pattern 3: src attribute comes before data-variant-slot
-    const pattern3 = new RegExp(
-      `(src=")data:[^;]*;base64,PLACEHOLDER("[^>]*?data-variant-slot="${escapedSlot}")`,
-      'g'
-    );
-    const pattern4 = new RegExp(
-      `(src=")PLACEHOLDER("[^>]*?data-variant-slot="${escapedSlot}")`,
+    // Pattern B: src comes before slot attr
+    const patternB = new RegExp(
+      `(src=")([^"]*)("[^>]*?data-variant-slot="${escapedSlot}")`,
       'g'
     );
 
     const before = html;
-    html = html.replace(pattern1, `$1${dataUri}"`);
-    html = html.replace(pattern2, `$1${dataUri}"`);
-    html = html.replace(pattern3, `$1${dataUri}$2`);
-    html = html.replace(pattern4, `$1${dataUri}$2`);
+    html = html.replace(patternA, `$1${dataUri}"`);
+    html = html.replace(patternB, `$1${dataUri}$3`);
 
     if (html !== before) {
       replacedSlots.push(slotName);
