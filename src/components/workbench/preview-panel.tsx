@@ -98,23 +98,32 @@ export function PreviewPanel({
       {/* Preview iframe */}
       <div className="flex flex-1 items-center justify-center overflow-auto bg-gray-100 p-4">
         {versionId ? (
-          <div
-            className="overflow-hidden rounded-lg border border-gray-300 bg-white shadow-lg"
-            style={{ width: iframeWidth * 0.8, height: iframeHeight * 0.8 }}
-          >
-            <iframe
-              key={`${versionId}-${isLandscape}-${deviceIdx}`}
-              src={`${previewUrl}?token=${token}`}
-              sandbox="allow-scripts"
-              className="h-full w-full"
-              style={{
-                width: iframeWidth,
-                height: iframeHeight,
-                transform: `scale(${0.8})`,
-                transformOrigin: 'top left',
-              }}
-            />
-          </div>
+          <>
+            <div
+              className="overflow-hidden rounded-lg border border-gray-300 bg-white shadow-lg"
+              style={{ width: iframeWidth * 0.8, height: iframeHeight * 0.8 }}
+            >
+              <iframe
+                key={`${versionId}-${isLandscape}-${deviceIdx}`}
+                src={`${previewUrl}?token=${token}`}
+                sandbox="allow-scripts"
+                className="h-full w-full"
+                style={{
+                  width: iframeWidth,
+                  height: iframeHeight,
+                  transform: `scale(${0.8})`,
+                  transformOrigin: 'top left',
+                }}
+              />
+            </div>
+            <a
+              href={`${previewUrl}?token=${token}`}
+              download="playable-ad.html"
+              className="mt-3 inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+            >
+              ⬇ 下载当前 HTML
+            </a>
+          </>
         ) : (
           <p className="text-sm text-gray-400">生成后即可预览</p>
         )}
