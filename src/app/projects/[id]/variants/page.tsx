@@ -136,57 +136,57 @@ export default function VariantsPage() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-4xl px-6 py-8 space-y-6">
-          {/* Locked skeleton info + preview */}
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+        <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 57px)' }}>
+          {/* Left: Locked skeleton preview */}
+          <div className="w-80 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <div className="flex items-center justify-between">
                 {lockedVersion ? (
-                  <>
-                    <Lock size={20} className="text-blue-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900">骨架已锁定</p>
-                      <p className="text-sm text-gray-500">v{lockedVersion.version} — 只读，需解锁才能继续迭代修改</p>
-                    </div>
-                  </>
+                  <div className="flex items-center gap-2">
+                    <Lock size={14} className="text-blue-600" />
+                    <span className="text-sm font-medium text-gray-900">骨架 v{lockedVersion.version}</span>
+                  </div>
                 ) : (
-                  <>
-                    <Unlock size={20} className="text-gray-400" />
-                    <div>
-                      <p className="font-semibold text-gray-900">未锁定骨架</p>
-                      <p className="text-sm text-gray-500">请回到工作台锁定一个版本</p>
-                    </div>
-                  </>
+                  <div className="flex items-center gap-2">
+                    <Unlock size={14} className="text-gray-400" />
+                    <span className="text-sm text-gray-500">未锁定</span>
+                  </div>
+                )}
+                {lockedVersion && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await fetch(`/api/projects/${projectId}/versions/${lockedVersion.id}/unlock`, {
+                          method: 'POST',
+                          headers: { Authorization: `Bearer ${token}` },
+                        });
+                        window.location.reload();
+                      } catch { /* ignore */ }
+                    }}
+                    className="text-xs text-gray-400 hover:text-blue-600"
+                  >
+                    解锁
+                  </button>
                 )}
               </div>
-              {lockedVersion && (
-                <button
-                  onClick={async () => {
-                    try {
-                      await fetch(`/api/projects/${projectId}/versions/${lockedVersion.id}/unlock`, {
-                        method: 'POST',
-                        headers: { Authorization: `Bearer ${token}` },
-                      });
-                      window.location.reload();
-                    } catch { /* ignore */ }
-                  }}
-                  className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
-                >
-                  <Unlock size={14} /> 解锁
-                </button>
-              )}
             </div>
-            {/* Locked skeleton preview */}
-            {lockedVersion && (
-              <div className="mt-4 overflow-hidden rounded-lg border border-gray-200 bg-gray-100" style={{ height: 200 }}>
+            {lockedVersion ? (
+              <div className="flex-1 bg-gray-100">
                 <iframe
                   src={`/api/projects/${projectId}/preview/${lockedVersion.id}?token=${token}`}
                   sandbox="allow-scripts"
                   className="w-full h-full border-0 pointer-events-none"
                 />
               </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center p-4">
+                <p className="text-sm text-gray-400 text-center">请回到工作台锁定一个版本</p>
+              </div>
             )}
-          </Card>
+          </div>
+
+          {/* Right: Dimensions + Matrix + Output */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
           {/* Variant dimensions */}
           <Card className="p-6">
@@ -470,7 +470,8 @@ export default function VariantsPage() {
               </div>
             );
           })()}
-        </main>
+          </div>
+        </div>
       </div>
     </ProtectedRoute>
   );
