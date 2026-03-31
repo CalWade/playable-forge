@@ -137,7 +137,7 @@ export default function VariantsPage() {
         </header>
 
         <main className="mx-auto max-w-4xl px-6 py-8 space-y-6">
-          {/* Locked skeleton info */}
+          {/* Locked skeleton info + preview */}
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -146,7 +146,7 @@ export default function VariantsPage() {
                     <Lock size={20} className="text-blue-600" />
                     <div>
                       <p className="font-semibold text-gray-900">骨架已锁定</p>
-                      <p className="text-sm text-gray-500">v{lockedVersion.version} — 已锁定骨架的只读预览</p>
+                      <p className="text-sm text-gray-500">v{lockedVersion.version} — 只读，需解锁才能继续迭代修改</p>
                     </div>
                   </>
                 ) : (
@@ -159,7 +159,33 @@ export default function VariantsPage() {
                   </>
                 )}
               </div>
+              {lockedVersion && (
+                <button
+                  onClick={async () => {
+                    try {
+                      await fetch(`/api/projects/${projectId}/versions/${lockedVersion.id}/unlock`, {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${token}` },
+                      });
+                      window.location.reload();
+                    } catch { /* ignore */ }
+                  }}
+                  className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+                >
+                  <Unlock size={14} /> 解锁
+                </button>
+              )}
             </div>
+            {/* Locked skeleton preview */}
+            {lockedVersion && (
+              <div className="mt-4 overflow-hidden rounded-lg border border-gray-200 bg-gray-100" style={{ height: 200 }}>
+                <iframe
+                  src={`/api/projects/${projectId}/preview/${lockedVersion.id}?token=${token}`}
+                  sandbox="allow-scripts"
+                  className="w-full h-full border-0 pointer-events-none"
+                />
+              </div>
+            )}
           </Card>
 
           {/* Variant dimensions */}

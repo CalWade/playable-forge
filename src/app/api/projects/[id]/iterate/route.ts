@@ -40,6 +40,17 @@ export async function POST(
       return Response.json({ error: 'No version exists yet' }, { status: 400 });
     }
 
+    // Check if skeleton is locked — if so, reject iteration
+    const lockedVersion = await prisma.htmlVersion.findFirst({
+      where: { projectId, isLocked: true },
+    });
+    if (lockedVersion) {
+      return Response.json(
+        { error: '骨架已锁定，请先解锁后再修改。或在变体页面点击"解锁"按钮。' },
+        { status: 400 }
+      );
+    }
+
     const history = await prisma.conversationMessage.findMany({
       where: { projectId },
       orderBy: { createdAt: 'asc' },
