@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { LabeledInput as Input } from '@/components/ui/labeled-input';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { toast } from '@/components/ui/toast';
 import { ArrowLeft } from 'lucide-react';

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import { useSSE } from '@/hooks/use-sse';
 import { Send } from 'lucide-react';
-import { Tabs } from '@/components/ui/tabs';
+import { SimpleTabs as Tabs } from '@/components/ui/simple-tabs';
 import useSWR from 'swr';
 
 interface ChatPanelProps {

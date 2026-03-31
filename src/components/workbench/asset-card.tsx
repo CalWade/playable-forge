@@ -71,7 +71,6 @@ export function AssetCard({ asset, projectId, onUpdate, token }: AssetCardProps)
     }
   };
 
-  const sizeKB = ((asset.compressedSize || asset.fileSize) / 1024).toFixed(0);
 
   return (
     <div className="group relative rounded-lg border border-gray-200 bg-white p-2">
