@@ -83,10 +83,10 @@ export default function ProjectWorkbenchPage() {
     <ProtectedRoute>
       <div className="flex h-screen flex-col">
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-gray-600">
-              <ArrowLeft size={20} />
+        <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2 flex-shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+              <ArrowLeft size={18} />
             </button>
             {editingName ? (
               <div className="flex items-center gap-2">
@@ -95,14 +95,14 @@ export default function ProjectWorkbenchPage() {
                   onChange={(e) => setNameInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setEditingName(false); }}
                   autoFocus
-                  className="rounded border border-gray-300 px-2 py-1 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded border border-gray-300 px-2 py-0.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button onClick={handleRename} className="text-xs text-blue-600">保存</button>
                 <button onClick={() => setEditingName(false)} className="text-xs text-gray-400">取消</button>
               </div>
             ) : (
               <h1
-                className="cursor-pointer text-lg font-semibold text-gray-900 hover:text-blue-600"
+                className="cursor-pointer text-sm font-semibold text-gray-900 hover:text-blue-600 truncate"
                 onClick={() => { setNameInput(project?.name || ''); setEditingName(true); }}
                 title="点击修改项目名"
               >
@@ -155,11 +155,11 @@ export default function ProjectWorkbenchPage() {
         </div>
 
         {/* Bottom bar */}
-        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3">
-          <Button variant="outline" onClick={handleLockSkeleton} disabled={!currentVersionId}>
-            <Lock size={16} className="mr-1" /> 锁定骨架
+        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-2 flex-shrink-0">
+          <Button variant="outline" size="sm" onClick={handleLockSkeleton} disabled={!currentVersionId}>
+            <Lock size={14} className="mr-1" /> 锁定骨架
           </Button>
-          <Button onClick={() => router.push(`/projects/${projectId}/variants`)}>
+          <Button size="sm" onClick={() => router.push(`/projects/${projectId}/variants`)}>
             生成变体 →
           </Button>
         </div>
