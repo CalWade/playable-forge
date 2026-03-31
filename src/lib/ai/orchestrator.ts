@@ -1,17 +1,7 @@
 import { streamText, generateText } from 'ai';
 import { getModel } from './provider';
 import { GENERATE_SYSTEM_PROMPT, ITERATE_SYSTEM_PROMPT } from './prompts';
-// retry available: import { withRetry } from './retry';
-
-interface AssetMetadata {
-  originalName: string;
-  category: string;
-  slotName: string | null;
-  variantRole: string;
-  width: number | null;
-  height: number | null;
-  mimeType: string;
-}
+import type { AssetMetadata } from '@/types';
 
 interface GenerateParams {
   assets: AssetMetadata[];

@@ -1,20 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
+import type { SlotAsset, SynthesisResult } from '@/types';
 
 const DATA_DIR = process.env.DATA_DIR || './data';
-
-interface SlotAsset {
-  slotName: string;
-  base64DataUri: string; // full data URI: data:image/png;base64,...
-  mimeType: string;
-}
-
-interface SynthesisResult {
-  html: string;
-  size: number;
-  unreplacedSlots: string[];
-  replacedSlots: string[];
-}
 
 /**
  * Synthesize full HTML by injecting base64 assets into skeleton PLACEHOLDER slots

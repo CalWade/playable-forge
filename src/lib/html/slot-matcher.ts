@@ -1,19 +1,5 @@
 import { readBase64 } from '@/lib/assets/base64';
-
-interface AssetRecord {
-  id: string;
-  originalName: string;
-  mimeType: string;
-  category: string;
-  slotName: string | null;
-  base64CachePath: string | null;
-}
-
-interface SlotAsset {
-  slotName: string;
-  base64DataUri: string;
-  mimeType: string;
-}
+import type { AssetRecord, SlotAsset } from '@/types';
 
 /**
  * Extract all unique data-variant-slot names from skeleton HTML

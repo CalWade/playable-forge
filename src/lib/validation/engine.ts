@@ -1,18 +1,4 @@
-export interface ValidationCheckResult {
-  id: string;
-  name: string;
-  level: 'error' | 'warning';
-  passed: boolean;
-  detail: string;
-}
-
-export interface ValidationResult {
-  grade: string;
-  results: ValidationCheckResult[];
-  passedCount: number;
-  failedCount: number;
-  warningCount: number;
-}
+import type { ValidationCheckResult, ValidationResult } from '@/types';
 
 interface ValidationRule {
   id: string;
