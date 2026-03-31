@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Monitor, Smartphone } from 'lucide-react';
+import { Monitor, Smartphone, RotateCcw } from 'lucide-react';
 
 const DEVICES = [
   { id: 'iphone13pro', label: 'iPhone 13 Pro', width: 390, height: 844 },
@@ -28,6 +28,7 @@ export function PreviewPanel({
 }: PreviewPanelProps) {
   const [isLandscape, setIsLandscape] = useState(false);
   const [deviceIdx, setDeviceIdx] = useState(0);
+  const [replayKey, setReplayKey] = useState(0);
 
   const previewUrl = versionId
     ? `/api/projects/${projectId}/preview/${versionId}`
@@ -76,6 +77,13 @@ export function PreviewPanel({
           >
             <Monitor size={14} />
           </button>
+          <button
+            onClick={() => setReplayKey((k) => k + 1)}
+            className="rounded p-1 text-gray-400 hover:text-gray-600"
+            title="重播"
+          >
+            <RotateCcw size={14} />
+          </button>
         </div>
         <select
           value={deviceIdx}
@@ -92,7 +100,7 @@ export function PreviewPanel({
       <div className="flex-1 overflow-auto bg-gray-100">
         {versionId ? (
           <iframe
-            key={`${versionId}-${isLandscape}-${deviceIdx}`}
+            key={`${versionId}-${isLandscape}-${deviceIdx}-${replayKey}`}
             src={`${previewUrl}?token=${token}`}
             sandbox="allow-scripts"
             className="w-full h-full border-0"
