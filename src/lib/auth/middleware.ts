@@ -14,10 +14,8 @@ export class AuthError extends Error {
 }
 
 export function getAuth(request: NextRequest): AuthResult {
-  // Try Authorization header first
   let token = request.headers.get('Authorization')?.replace('Bearer ', '') || '';
 
-  // Fallback: query param ?token=xxx (for img src, iframe src, downloads)
   if (!token) {
     token = request.nextUrl.searchParams.get('token') || '';
   }
@@ -37,4 +35,28 @@ export function handleAuthError(error: unknown) {
     return Response.json({ error: error.message }, { status: 401 });
   }
   throw error;
+}
+
+type RouteHandler = (
+  request: NextRequest,
+  context: { params: Record<string, string>; auth: AuthResult }
+) => Promise<Response>;
+
+/**
+ * Higher-order function that wraps route handlers with auth + error handling.
+ * Eliminates boilerplate try/catch + getAuth in every route.
+ */
+export function withAuth(handler: RouteHandler) {
+  return async (request: NextRequest, { params }: { params: Record<string, string> }) => {
+    try {
+      const auth = getAuth(request);
+      return await handler(request, { params, auth });
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return Response.json({ error: error.message }, { status: 401 });
+      }
+      console.error('Route error:', error);
+      return Response.json({ error: 'Internal server error' }, { status: 500 });
+    }
+  };
 }
