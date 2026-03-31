@@ -65,6 +65,7 @@ export default function DashboardPage() {
               { label: '本月变体', value: data?.monthlyVariants ?? '-' },
               { label: '首次通过率', value: data?.firstPassRate !== undefined ? `${data.firstPassRate}%` : '-' },
               { label: '平均迭代', value: data?.avgIterations !== undefined ? `${data.avgIterations}轮` : '-' },
+              { label: '预估节省', value: data?.estimatedHoursSaved !== undefined ? `${data.estimatedHoursSaved}h` : '-' },
             ].map((stat) => (
               <Card key={stat.label} className="flex-1 px-5 py-4">
                 <p className="text-xs text-gray-500">{stat.label}</p>
@@ -121,6 +122,37 @@ export default function DashboardPage() {
               </div>
             )}
           </Card>
+
+          {/* Recent activity */}
+          {data?.recentActivity && data.recentActivity.length > 0 && (
+            <Card className="mt-6">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900">最近活动</h3>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {data.recentActivity.map(
+                  (a: { id: string; projectName: string; projectId: string; role: string; content: string; createdAt: string }) => (
+                    <div
+                      key={a.id}
+                      onClick={() => router.push(`/projects/${a.projectId}`)}
+                      className="flex cursor-pointer items-center justify-between px-6 py-3 hover:bg-gray-50"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-xs flex-shrink-0">{a.role === 'user' ? '👤' : '🤖'}</span>
+                        <span className="text-sm text-gray-600 truncate">{a.content}</span>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                        <span className="text-xs text-gray-400">{a.projectName}</span>
+                        <span className="text-xs text-gray-300">
+                          {new Date(a.createdAt).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            </Card>
+          )}
         </main>
       </div>
     </ProtectedRoute>

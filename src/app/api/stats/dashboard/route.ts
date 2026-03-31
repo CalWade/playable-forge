@@ -41,11 +41,38 @@ export async function GET(request: NextRequest) {
         ? iterCounts.reduce((a, b) => a + b, 0) / iterCounts.length
         : 0;
 
+    // Estimated time saved: each variant manually takes ~15min, with PlayableForge ~1min
+    const totalVariantsEver = projects.reduce((sum, p) => sum + p._count.variants, 0);
+    const estimatedHoursSaved = Math.round((totalVariantsEver * 14) / 60 * 10) / 10; // 14min saved per variant
+
+    // Recent activity
+    const recentMessages = await prisma.conversationMessage.findMany({
+      where: { project: { userId: auth.userId } },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        role: true,
+        content: true,
+        createdAt: true,
+        project: { select: { id: true, name: true } },
+      },
+    });
+
     return Response.json({
       totalProjects,
       monthlyVariants,
       firstPassRate: Math.round(firstPassRate * 100),
       avgIterations: Math.round(avgIterations * 10) / 10,
+      estimatedHoursSaved,
+      recentActivity: recentMessages.map((m) => ({
+        id: m.id,
+        projectId: m.project.id,
+        projectName: m.project.name,
+        role: m.role,
+        content: m.content.length > 50 ? m.content.slice(0, 50) + '...' : m.content,
+        createdAt: m.createdAt.toISOString(),
+      })),
       recentProjects: projects
         .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
         .slice(0, 10)

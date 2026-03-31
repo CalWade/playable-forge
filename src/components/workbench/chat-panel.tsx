@@ -71,6 +71,12 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
         }
         return [...prev, { role: 'status', content: lastEvent.data.message as string }];
       });
+    } else if (lastEvent.event === 'question') {
+      // AI is asking the user a clarifying question
+      setTempMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: `🤔 ${lastEvent.data.message}` },
+      ]);
     }
   }, [lastEvent, onVersionChange, refreshConv, refreshHistory]);
 

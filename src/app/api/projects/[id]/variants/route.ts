@@ -23,6 +23,7 @@ export async function GET(
         status: true,
         fullHtmlSize: true,
         validationGrade: true,
+        validationJson: true,
         createdAt: true,
       },
     });

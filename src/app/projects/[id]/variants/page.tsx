@@ -18,6 +18,8 @@ export default function VariantsPage() {
   const { token } = useAuth();
   const [generating, setGenerating] = useState(false);
   const [previewVariantId, setPreviewVariantId] = useState<string | null>(null);
+  const [dimensionOverrides, setDimensionOverrides] = useState<Record<string, { enabled: boolean; assetIds: string[] }>>({});
+  const [validationReportId, setValidationReportId] = useState<string | null>(null);
 
   const fetcher = async (url: string) => {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -41,9 +43,50 @@ export default function VariantsPage() {
   );
 
   const lockedVersion = versionData?.versions?.find((v: { isLocked: boolean }) => v.isLocked);
-  const dimensions = configData?.dimensions || [];
-  const totalCombinations = configData?.totalCombinations || 0;
+  const rawDimensions = configData?.dimensions || [];
   const variants = variantData?.variants || [];
+
+  // Apply overrides to dimensions
+  const dimensions = rawDimensions.map((d: { name: string; label: string; assets: Array<{ id: string; fileName: string; thumbnailUrl: string | null }>; enabled: boolean }) => {
+    const override = dimensionOverrides[d.name];
+    if (!override) return { ...d, enabled: true };
+    return {
+      ...d,
+      enabled: override.enabled,
+      assets: d.assets.filter((a: { id: string }) => override.assetIds.includes(a.id)),
+    };
+  });
+
+  const enabledDimensions = dimensions.filter((d: { enabled: boolean; assets: { length: number } }) => d.enabled && d.assets.length > 0);
+  const totalCombinations = enabledDimensions.length > 0
+    ? enabledDimensions.reduce((acc: number, d: { assets: { length: number } }) => acc * d.assets.length, 1)
+    : 0;
+
+  const toggleDimension = (name: string, enabled: boolean) => {
+    const raw = rawDimensions.find((d: { name: string }) => d.name === name);
+    setDimensionOverrides((prev) => ({
+      ...prev,
+      [name]: {
+        enabled,
+        assetIds: prev[name]?.assetIds || raw?.assets.map((a: { id: string }) => a.id) || [],
+      },
+    }));
+  };
+
+  const toggleAsset = (dimName: string, assetId: string) => {
+    const raw = rawDimensions.find((d: { name: string }) => d.name === dimName);
+    const allIds = raw?.assets.map((a: { id: string }) => a.id) || [];
+    setDimensionOverrides((prev) => {
+      const current = prev[dimName]?.assetIds || allIds;
+      const newIds = current.includes(assetId)
+        ? current.filter((id: string) => id !== assetId)
+        : [...current, assetId];
+      return {
+        ...prev,
+        [dimName]: { enabled: prev[dimName]?.enabled !== false, assetIds: newIds },
+      };
+    });
+  };
 
   const handleGenerate = async () => {
     if (!lockedVersion) {
@@ -127,28 +170,53 @@ export default function VariantsPage() {
             ) : dimensions.length === 0 ? (
               <p className="text-sm text-gray-400">没有标记为&ldquo;参与变体&rdquo;的素材</p>
             ) : (
-              <div className="space-y-3">
-                {dimensions.map((d: { name: string; label: string; assets: Array<{ id: string; thumbnailUrl: string | null }> }) => (
-                  <div key={d.name} className="flex items-center gap-4">
-                    <span className="w-28 text-sm text-gray-600">
-                      {d.label} ({d.assets.length}张)
-                    </span>
-                    <div className="flex gap-2">
-                      {d.assets.map((a) => (
-                        <div key={a.id} className="h-12 w-12 overflow-hidden rounded border border-blue-300 bg-gray-100">
-                          {a.thumbnailUrl ? (
-                            <img src={a.thumbnailUrl} alt="asset" className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="flex h-full items-center justify-center text-xs text-gray-400">?</div>
-                          )}
-                        </div>
-                      ))}
+              <div className="space-y-4">
+                {rawDimensions.map((d: { name: string; label: string; assets: Array<{ id: string; thumbnailUrl: string | null }> }) => {
+                  const override = dimensionOverrides[d.name];
+                  const isEnabled = override?.enabled !== false;
+                  const selectedIds = override?.assetIds || d.assets.map((a: { id: string }) => a.id);
+
+                  return (
+                    <div key={d.name} className={`flex items-center gap-4 ${!isEnabled ? 'opacity-40' : ''}`}>
+                      <label className="flex items-center gap-2 w-32 flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={isEnabled}
+                          onChange={(e) => toggleDimension(d.name, e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-600">
+                          {d.label} ({selectedIds.length}张)
+                        </span>
+                      </label>
+                      <div className="flex gap-2 flex-wrap">
+                        {d.assets.map((a: { id: string; thumbnailUrl: string | null }) => {
+                          const isSelected = selectedIds.includes(a.id);
+                          return (
+                            <div
+                              key={a.id}
+                              onClick={() => isEnabled && toggleAsset(d.name, a.id)}
+                              className={`h-12 w-12 overflow-hidden rounded border-2 bg-gray-100 cursor-pointer transition-all ${
+                                isSelected && isEnabled ? 'border-blue-400 ring-1 ring-blue-200' : 'border-gray-200 opacity-40'
+                              }`}
+                            >
+                              {a.thumbnailUrl ? (
+                                <img src={a.thumbnailUrl} alt="asset" className="h-full w-full object-cover" />
+                              ) : (
+                                <div className="flex h-full items-center justify-center text-xs text-gray-400">?</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <div className="mt-4 text-lg font-semibold text-blue-600">
-                  {dimensions.map((d: { assets: { length: number } }) => d.assets.length).join(' × ')} ={' '}
+                  {enabledDimensions.length > 0
+                    ? enabledDimensions.map((d: { assets: { length: number } }) => d.assets.length).join(' × ') + ' = '
+                    : ''}
                   <span className="text-2xl">{totalCombinations}</span> 个变体
                 </div>
               </div>
@@ -228,6 +296,7 @@ export default function VariantsPage() {
                       <td className="py-2 space-x-2">
                         <button onClick={() => setPreviewVariantId(v.id)} className="text-xs text-blue-600 hover:underline">预览</button>
                         <a href={`/api/variants/${v.id}/preview?token=${token}`} download={`${v.name}.html`} className="text-xs text-blue-600 hover:underline">下载</a>
+                        <button onClick={() => setValidationReportId(v.id)} className="text-xs text-gray-500 hover:underline">校验报告</button>
                       </td>
                     </tr>
                   ))}
@@ -242,6 +311,7 @@ export default function VariantsPage() {
               {configData?.estimatedTotalSize
                 ? `预估总体积: ${(configData.estimatedTotalSize / 1024 / 1024).toFixed(1)} MB`
                 : ''}
+              <span className="ml-4">预估成本: $0（纯素材替换，不调 AI）</span>
               {variants.length > 0 && (
                 <span className="ml-4">
                   已完成 {variants.length}/{totalCombinations}
@@ -260,6 +330,38 @@ export default function VariantsPage() {
               </Button>
             </div>
           </div>
+
+          {/* Validation report modal */}
+          {validationReportId && (() => {
+            const variant = variants.find((v: { id: string }) => v.id === validationReportId);
+            const report = variant?.validationJson ? JSON.parse(variant.validationJson) : [];
+            return (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setValidationReportId(null)}>
+                <div className="w-[500px] rounded-xl bg-white p-6 shadow-2xl" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold">校验报告 — {variant?.name}</h3>
+                    <button onClick={() => setValidationReportId(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+                  </div>
+                  <div className="space-y-2">
+                    {report.map((r: { id: string; name: string; level: string; passed: boolean; detail: string }, i: number) => (
+                      <div key={i} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span>{r.passed ? '✅' : r.level === 'error' ? '❌' : '⚠️'}</span>
+                          <span className="text-gray-700">{r.name}</span>
+                        </div>
+                        <span className="text-gray-400 text-xs">{r.detail}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 text-center">
+                    <Badge variant={variant?.validationGrade === 'A' ? 'success' : variant?.validationGrade === 'B' ? 'info' : 'warning'}>
+                      总评: {variant?.validationGrade} 级
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </main>
       </div>
     </ProtectedRoute>
