@@ -64,6 +64,21 @@ export default function ProjectWorkbenchPage() {
     }
   };
 
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+
+  const handleRename = async () => {
+    if (!nameInput.trim()) return;
+    try {
+      await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nameInput.trim() }),
+      });
+      setEditingName(false);
+    } catch { /* ignore */ }
+  };
+
   return (
     <ProtectedRoute>
       <div className="flex h-screen flex-col">
@@ -73,9 +88,27 @@ export default function ProjectWorkbenchPage() {
             <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-gray-600">
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-lg font-semibold text-gray-900">
-              {project?.name || '加载中...'}
-            </h1>
+            {editingName ? (
+              <div className="flex items-center gap-2">
+                <input
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setEditingName(false); }}
+                  autoFocus
+                  className="rounded border border-gray-300 px-2 py-1 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button onClick={handleRename} className="text-xs text-blue-600">保存</button>
+                <button onClick={() => setEditingName(false)} className="text-xs text-gray-400">取消</button>
+              </div>
+            ) : (
+              <h1
+                className="cursor-pointer text-lg font-semibold text-gray-900 hover:text-blue-600"
+                onClick={() => { setNameInput(project?.name || ''); setEditingName(true); }}
+                title="点击修改项目名"
+              >
+                {project?.name || '加载中...'}
+              </h1>
+            )}
             {latestVersion?.validationGrade && (
               <Badge
                 variant={

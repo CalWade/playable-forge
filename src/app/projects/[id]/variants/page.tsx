@@ -17,6 +17,7 @@ export default function VariantsPage() {
   const projectId = params.id as string;
   const { token } = useAuth();
   const [generating, setGenerating] = useState(false);
+  const [previewVariantId, setPreviewVariantId] = useState<string | null>(null);
 
   const fetcher = async (url: string) => {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -162,7 +163,8 @@ export default function VariantsPage() {
                 {variants.map((v: { id: string; name: string; validationGrade: string | null; fullHtmlSize: number | null }) => (
                   <div
                     key={v.id}
-                    className={`rounded-lg border-2 p-2 text-center ${gradeColor(v.validationGrade)}`}
+                    onClick={() => setPreviewVariantId(v.id)}
+                    className={`cursor-pointer rounded-lg border-2 p-2 text-center hover:shadow-md transition-shadow ${gradeColor(v.validationGrade)}`}
                   >
                     <p className="truncate text-xs font-medium text-gray-700">{v.name}</p>
                     <div className="flex items-center justify-center gap-1 mt-1">
@@ -176,6 +178,61 @@ export default function VariantsPage() {
                   </div>
                 ))}
               </div>
+            </Card>
+          )}
+
+          {/* Variant preview modal */}
+          {previewVariantId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setPreviewVariantId(null)}>
+              <div className="relative w-[420px] h-[750px] rounded-xl bg-white shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between border-b px-4 py-2">
+                  <span className="text-sm font-medium">变体预览</span>
+                  <button onClick={() => setPreviewVariantId(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                </div>
+                <iframe
+                  src={`/api/variants/${previewVariantId}/preview?token=${token}`}
+                  sandbox="allow-scripts"
+                  className="w-full border-0"
+                  style={{ height: 'calc(100% - 45px)' }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* F7: Output management table */}
+          {variants.length > 0 && (
+            <Card className="p-6">
+              <h3 className="mb-4 font-semibold text-gray-900">产出管理</h3>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-gray-500">
+                    <th className="pb-2 font-medium">文件名</th>
+                    <th className="pb-2 font-medium">体积</th>
+                    <th className="pb-2 font-medium">校验</th>
+                    <th className="pb-2 font-medium">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {variants.map((v: { id: string; name: string; validationGrade: string | null; fullHtmlSize: number | null }) => (
+                    <tr key={v.id} className="hover:bg-gray-50">
+                      <td className="py-2 text-gray-700">{v.name}.html</td>
+                      <td className="py-2 text-gray-500">{v.fullHtmlSize ? `${(v.fullHtmlSize / 1024).toFixed(0)}KB` : '-'}</td>
+                      <td className="py-2">
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${
+                          v.validationGrade === 'A' ? 'bg-green-100 text-green-700' :
+                          v.validationGrade === 'B' ? 'bg-blue-100 text-blue-700' :
+                          v.validationGrade === 'C' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>{v.validationGrade || '-'}</span>
+                      </td>
+                      <td className="py-2 space-x-2">
+                        <button onClick={() => setPreviewVariantId(v.id)} className="text-xs text-blue-600 hover:underline">预览</button>
+                        <a href={`/api/variants/${v.id}/preview?token=${token}`} download={`${v.name}.html`} className="text-xs text-blue-600 hover:underline">下载</a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </Card>
           )}
 

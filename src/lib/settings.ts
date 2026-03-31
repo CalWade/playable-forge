@@ -9,6 +9,7 @@ export interface AppSettings {
     baseUrl: string;
     model: string;
     maxTokens: number;
+    systemPromptOverride?: string;
   };
   validation: {
     maxFileSize: number;

@@ -15,7 +15,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
-    ai: { baseUrl: '', model: '', maxTokens: 16000 },
+    ai: { baseUrl: '', model: '', maxTokens: 16000, systemPromptOverride: '' },
     validation: { maxFileSize: 5242880, warnFileSize: 4194304, platform: 'applovin' },
     compression: { imageQuality: 80, maxImageWidth: 1920, audioTargetKbps: 128 },
   });
@@ -90,6 +90,20 @@ export default function SettingsPage() {
                 onChange={(e) => setSettings({ ...settings, compression: { ...settings.compression, maxImageWidth: Number(e.target.value) } })} />
               <Input label="音频目标码率 (kbps)" type="number" value={String(settings.compression.audioTargetKbps)}
                 onChange={(e) => setSettings({ ...settings, compression: { ...settings.compression, audioTargetKbps: Number(e.target.value) } })} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><h3 className="font-semibold">System Prompt</h3></CardHeader>
+            <CardContent>
+              <p className="mb-2 text-xs text-gray-500">自定义 AI 生成时的系统指令（留空则使用默认 prompt）</p>
+              <textarea
+                value={settings.ai.systemPromptOverride || ''}
+                onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, systemPromptOverride: e.target.value } })}
+                placeholder="留空使用默认 System Prompt..."
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                rows={10}
+              />
             </CardContent>
           </Card>
 
