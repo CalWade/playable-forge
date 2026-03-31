@@ -96,15 +96,35 @@ export function PreviewPanel({
         </select>
       </div>
 
-      {/* Preview iframe - takes all remaining space, no scaling */}
-      <div className="flex-1 overflow-auto bg-gray-100">
+      {/* Preview iframe */}
+      <div className="flex-1 flex items-center justify-center overflow-hidden bg-gray-100 p-2">
         {versionId ? (
-          <iframe
-            key={`${versionId}-${isLandscape}-${deviceIdx}-${replayKey}`}
-            src={`${previewUrl}?token=${token}`}
-            sandbox="allow-scripts"
-            className="w-full h-full border-0"
-          />
+          isLandscape ? (
+            // Landscape: rotate the iframe 90 degrees
+            <div className="relative" style={{ width: '100%', height: '100%' }}>
+              <iframe
+                key={`${versionId}-${isLandscape}-${deviceIdx}-${replayKey}`}
+                src={`${previewUrl}?token=${token}`}
+                sandbox="allow-scripts"
+                className="absolute border-0"
+                style={{
+                  width: '100%',
+                  height: '56.25%',
+                  top: '50%',
+                  left: '0',
+                  transform: 'translateY(-50%)',
+                }}
+              />
+            </div>
+          ) : (
+            // Portrait: normal full height
+            <iframe
+              key={`${versionId}-${isLandscape}-${deviceIdx}-${replayKey}`}
+              src={`${previewUrl}?token=${token}`}
+              sandbox="allow-scripts"
+              className="w-full h-full border-0"
+            />
+          )
         ) : (
           <div className="flex h-full items-center justify-center">
             <p className="text-sm text-gray-400">生成后即可预览</p>
