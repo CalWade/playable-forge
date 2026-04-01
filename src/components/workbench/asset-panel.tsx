@@ -22,8 +22,8 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-gray-100 px-4 py-3">
-        <h3 className="text-sm font-semibold text-gray-900">素材</h3>
+      <div className="px-4 py-3">
+        <h3 className="text-sm font-bold text-clay-text">素材</h3>
       </div>
 
       <div className="p-3">
@@ -33,10 +33,10 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
       {/* Size estimate */}
       {assets.length > 0 && (
         <div className="px-3 pb-2">
-          <p className="text-[10px] text-gray-400">
+          <p className="text-[10px] font-medium text-clay-text/40">
             预估 HTML: {(estimatedHtml / 1024).toFixed(0)} KB / 5120 KB
           </p>
-          <div className="mt-1 h-1.5 w-full rounded-full bg-gray-100">
+          <div className="mt-1 h-1.5 w-full rounded-full bg-clay-bg">
             <div
               className={`h-full rounded-full transition-all ${
                 estimatedHtml > 5 * 1024 * 1024
@@ -60,7 +60,7 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
           </div>
         ) : assets.length === 0 ? (
-          <p className="py-8 text-center text-sm text-gray-400">
+          <p className="py-8 text-center text-sm font-medium text-clay-muted">
             还没有素材，上传开始
           </p>
         ) : (

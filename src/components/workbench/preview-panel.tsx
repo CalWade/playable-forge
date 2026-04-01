@@ -49,43 +49,43 @@ export function PreviewPanel({
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2 flex-shrink-0">
-        <h3 className="text-sm font-semibold text-gray-900">预览</h3>
+      <div className="flex items-center justify-between border-b border-clay-blue-50/30 px-4 py-2 flex-shrink-0">
+        <h3 className="text-sm font-bold text-clay-text">预览</h3>
         <div className="flex items-center gap-2">
           {validationGrade && <Badge variant={gradeVariant}>{validationGrade} 级</Badge>}
-          {htmlSize && <span className="text-[10px] text-gray-400">{(htmlSize / 1024).toFixed(0)}KB</span>}
+          {htmlSize && <span className="text-[10px] text-clay-muted">{(htmlSize / 1024).toFixed(0)}KB</span>}
         </div>
       </div>
 
       {/* Device controls */}
-      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-1.5 flex-shrink-0">
+      <div className="flex items-center justify-between border-b border-clay-blue-50/30 px-4 py-1.5 flex-shrink-0">
         <div className="flex items-center gap-1">
           <button
             onClick={() => setIsLandscape(false)}
-            className={`rounded p-1 ${!isLandscape ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`rounded p-1 ${!isLandscape ? 'bg-blue-100 text-blue-600' : 'text-clay-muted hover:text-clay-text/70'}`}
           >
             <Smartphone size={14} />
           </button>
           <button
             onClick={() => setIsLandscape(true)}
-            className={`rounded p-1 ${isLandscape ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`rounded p-1 ${isLandscape ? 'bg-blue-100 text-blue-600' : 'text-clay-muted hover:text-clay-text/70'}`}
           >
             <Monitor size={14} />
           </button>
           <button
             onClick={() => setReplayKey((k) => k + 1)}
-            className="rounded p-1 text-gray-400 hover:text-gray-600"
+            className="rounded p-1 text-clay-muted hover:text-clay-text/70"
             title="重播"
           >
             <RotateCcw size={14} />
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-400">{deviceW}×{deviceH}</span>
+          <span className="text-[10px] text-clay-muted">{deviceW}×{deviceH}</span>
           <select
             value={deviceIdx}
             onChange={(e) => setDeviceIdx(Number(e.target.value))}
-            className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] text-gray-600"
+            className="rounded border border-clay-blue-50 px-1.5 py-0.5 text-[10px] text-clay-text/70"
           >
             {DEVICES.map((d, i) => (
               <option key={d.id} value={i}>{d.label}</option>
@@ -95,7 +95,7 @@ export function PreviewPanel({
       </div>
 
       {/* Preview iframe - scaled to fit panel while maintaining device aspect ratio */}
-      <div className="flex-1 flex items-center justify-center overflow-hidden bg-gray-100 p-3">
+      <div className="flex-1 flex items-center justify-center overflow-hidden bg-clay-bg p-3">
         {versionId ? (
           <DeviceFrame
             width={deviceW}
@@ -104,7 +104,7 @@ export function PreviewPanel({
             frameKey={`${versionId}-${isLandscape}-${deviceIdx}-${replayKey}`}
           />
         ) : (
-          <p className="text-sm text-gray-400">生成后即可预览</p>
+          <p className="text-sm text-clay-muted">生成后即可预览</p>
         )}
       </div>
     </div>
@@ -143,7 +143,7 @@ function DeviceFrame({
       className="relative w-full h-full flex items-center justify-center"
     >
       <div
-        className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg"
+        className="overflow-hidden rounded-xl border border-clay-blue-100 bg-white shadow-lg"
         style={{
           width: width * scale,
           height: height * scale,

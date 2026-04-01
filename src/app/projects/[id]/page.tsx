@@ -132,18 +132,18 @@ export default function ProjectWorkbenchPage() {
         </header>
 
         {/* Three-column layout */}
-        <div className="flex flex-1 overflow-hidden bg-clay-bg">
-          <div className="w-72 flex-shrink-0 overflow-y-auto border-r border-clay-blue-50 bg-white/80">
+        <div className="flex flex-1 overflow-hidden bg-clay-bg p-3 gap-3">
+          <div className="w-72 flex-shrink-0 overflow-y-auto rounded-clay-lg clay-gradient-surface clay-shadow">
             <AssetPanel projectId={projectId} />
           </div>
-          <div className="flex flex-1 flex-col border-r border-clay-blue-50 bg-white/80">
+          <div className="flex flex-1 flex-col rounded-clay-lg clay-gradient-surface clay-shadow">
             <ChatPanel
               projectId={projectId}
               onVersionChange={(vid) => { setCurrentVersionId(vid); refreshVersions(); }}
               hasVersion={!!currentVersionId}
             />
           </div>
-          <div className="flex flex-shrink-0 flex-col bg-white/80" style={{ width: 450 }}>
+          <div className="flex flex-shrink-0 flex-col rounded-clay-lg clay-gradient-surface clay-shadow" style={{ width: 450 }}>
             <PreviewPanel
               projectId={projectId}
               versionId={currentVersionId}

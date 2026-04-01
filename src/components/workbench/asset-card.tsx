@@ -73,9 +73,9 @@ export function AssetCard({ asset, projectId, onUpdate, token }: AssetCardProps)
 
 
   return (
-    <div className="group relative rounded-lg border border-gray-200 bg-white p-2">
+    <div className="group relative rounded-lg border border-clay-blue-50 bg-white p-2">
       {/* Thumbnail */}
-      <div className="relative mb-2 aspect-square overflow-hidden rounded-md bg-gray-100">
+      <div className="relative mb-2 aspect-square overflow-hidden rounded-md bg-clay-bg">
         {asset.thumbnailUrl ? (
           <img
             src={`${asset.thumbnailUrl}?token=${token}`}
@@ -97,10 +97,10 @@ export function AssetCard({ asset, projectId, onUpdate, token }: AssetCardProps)
       </div>
 
       {/* File name + size comparison */}
-      <p className="truncate text-xs text-gray-600" title={asset.originalName}>
+      <p className="truncate text-xs text-clay-text/70" title={asset.originalName}>
         {asset.originalName}
       </p>
-      <div className="flex items-center gap-1 text-[10px] text-gray-400">
+      <div className="flex items-center gap-1 text-[10px] font-medium text-clay-text/40">
         <span>{(asset.fileSize / 1024).toFixed(0)}KB</span>
         {asset.compressedSize && asset.compressedSize < asset.fileSize && (
           <>
