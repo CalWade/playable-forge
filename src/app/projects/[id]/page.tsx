@@ -136,14 +136,14 @@ export default function ProjectWorkbenchPage() {
           <div className="w-72 flex-shrink-0 overflow-y-auto border-r border-gray-200 bg-white">
             <AssetPanel projectId={projectId} />
           </div>
-          <div className="flex w-72 flex-shrink-0 flex-col border-r border-gray-200 bg-white">
+          <div className="flex flex-1 flex-col border-r border-gray-200 bg-white">
             <ChatPanel
               projectId={projectId}
               onVersionChange={(vid) => { setCurrentVersionId(vid); refreshVersions(); }}
               hasVersion={!!currentVersionId}
             />
           </div>
-          <div className="flex flex-1 flex-col bg-white">
+          <div className="flex flex-shrink-0 flex-col bg-white" style={{ width: 450 }}>
             <PreviewPanel
               projectId={projectId}
               versionId={currentVersionId}
