@@ -133,17 +133,17 @@ export default function ProjectWorkbenchPage() {
 
         {/* Three-column layout */}
         <div className="flex flex-1 overflow-hidden">
-          <div className="w-80 flex-shrink-0 overflow-y-auto border-r border-gray-200 bg-white">
+          <div className="w-72 flex-shrink-0 overflow-y-auto border-r border-gray-200 bg-white">
             <AssetPanel projectId={projectId} />
           </div>
-          <div className="flex flex-1 flex-col border-r border-gray-200 bg-white">
+          <div className="flex w-72 flex-shrink-0 flex-col border-r border-gray-200 bg-white">
             <ChatPanel
               projectId={projectId}
               onVersionChange={(vid) => { setCurrentVersionId(vid); refreshVersions(); }}
               hasVersion={!!currentVersionId}
             />
           </div>
-          <div className="flex w-96 flex-shrink-0 flex-col bg-white">
+          <div className="flex flex-1 flex-col bg-white">
             <PreviewPanel
               projectId={projectId}
               versionId={currentVersionId}
@@ -155,24 +155,22 @@ export default function ProjectWorkbenchPage() {
         </div>
 
         {/* Bottom bar */}
-        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-2 flex-shrink-0">
-          <Button variant="outline" size="sm" onClick={handleLockSkeleton} disabled={!currentVersionId}>
-            <Lock size={14} className="mr-1" /> 锁定骨架
+        <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-white px-5 py-3 flex-shrink-0">
+          {currentVersionId && (
+            <a
+              href={`/api/projects/${projectId}/preview/${currentVersionId}?token=${token}`}
+              download="playable-ad.html"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+            >
+              ⬇ 下载 HTML
+            </a>
+          )}
+          <Button variant="outline" onClick={handleLockSkeleton} disabled={!currentVersionId}>
+            <Lock size={16} className="mr-1.5" /> 锁定骨架
           </Button>
-          <div className="flex items-center gap-2">
-            {currentVersionId && (
-              <a
-                href={`/api/projects/${projectId}/preview/${currentVersionId}?token=${token}`}
-                download="playable-ad.html"
-                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
-              >
-                ⬇ 下载 HTML
-              </a>
-            )}
-            <Button size="sm" onClick={() => router.push(`/projects/${projectId}/variants`)}>
-              生成变体 →
-            </Button>
-          </div>
+          <Button onClick={() => router.push(`/projects/${projectId}/variants`)}>
+            生成变体 →
+          </Button>
         </div>
       </div>
     </ProtectedRoute>
