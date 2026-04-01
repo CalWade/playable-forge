@@ -3,12 +3,14 @@ import { getModel } from './provider';
 import { GENERATE_SYSTEM_PROMPT, ITERATE_SYSTEM_PROMPT } from './prompts';
 import { inferSlotName } from '@/lib/assets/classifier';
 import { getSettings } from '@/lib/settings';
+import { SAFETY_CLARIFICATION } from '@/lib/ai/response-validator';
 import type { AssetMetadata } from '@/types';
 
 interface GenerateParams {
   assets: AssetMetadata[];
   referenceImageBase64?: string[];
   description?: string;
+  safetyClarification?: boolean;
 }
 
 function getSlotName(a: AssetMetadata): string {
@@ -52,6 +54,10 @@ export async function generateSkeleton(params: GenerateParams) {
   // but for simplicity we describe them in text for now
   if (params.referenceImageBase64 && params.referenceImageBase64.length > 0) {
     textPrompt += `\n\n## 效果图\n已提供 ${params.referenceImageBase64.length} 张效果图作为参考。`;
+  }
+
+  if (params.safetyClarification) {
+    textPrompt = `${SAFETY_CLARIFICATION}\n\n${textPrompt}`;
   }
 
   const result = streamText({

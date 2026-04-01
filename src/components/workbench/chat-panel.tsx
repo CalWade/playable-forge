@@ -21,6 +21,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
   const { token } = useAuth();
   const [input, setInput] = useState('');
   const [description, setDescription] = useState('');
+  const [safetyClarification, setSafetyClarification] = useState(false);
   const { isStreaming, lastEvent, startStream } = useSSE();
 
   const fetcher = async (url: string) => {
@@ -68,7 +69,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
     setTempMessages([{ role: 'status', content: '🔍 正在生成初稿...' }]);
     await startStream(`/api/projects/${projectId}/generate`, {
       method: 'POST',
-      body: JSON.stringify({ description: description || undefined }),
+      body: JSON.stringify({ description: description || undefined, safetyClarification }),
       token: token || undefined,
     });
   };
@@ -111,6 +112,8 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
                   <GeneratePanel
                     description={description}
                     onDescriptionChange={setDescription}
+                    safetyClarification={safetyClarification}
+                    onSafetyClarificationChange={setSafetyClarification}
                     onGenerate={handleGenerate}
                     isStreaming={isStreaming}
                   />

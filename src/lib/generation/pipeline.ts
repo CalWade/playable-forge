@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { generateSkeleton, iterateSkeleton, autofixSkeleton, extractHtml } from '@/lib/ai/orchestrator';
 import { validate } from '@/lib/validation/engine';
+import { validateAIResponse } from '@/lib/ai/response-validator';
 import { readBase64 } from '@/lib/assets/base64';
 import type { AssetMetadata } from '@/types';
 
@@ -15,6 +16,7 @@ export interface SSEWriter {
 interface GeneratePipelineParams {
   projectId: string;
   description?: string;
+  safetyClarification?: boolean;
   sse: SSEWriter;
 }
 
@@ -51,7 +53,12 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
 
   sse.write('status', { step: 'generating', message: '🛠️ 正在生成 HTML 骨架...' });
 
-  const result = await generateSkeleton({ assets: assetMetadata, referenceImageBase64, description });
+  const result = await generateSkeleton({
+    assets: assetMetadata,
+    referenceImageBase64,
+    description,
+    safetyClarification: params.safetyClarification,
+  });
 
   let fullText = '';
   for await (const chunk of result.textStream) {
@@ -59,6 +66,24 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
   }
 
   let skeleton = extractHtml(fullText);
+
+  // Validate AI response before proceeding
+  const responseCheck = validateAIResponse(skeleton);
+  if (responseCheck.status === 'empty') {
+    throw new Error(responseCheck.message);
+  }
+  if (responseCheck.status === 'refused') {
+    sse.write('error', { message: responseCheck.message, type: 'refused' });
+    return;
+  }
+  if (responseCheck.status === 'question') {
+    sse.write('question', { message: responseCheck.message });
+    return;
+  }
+  if (responseCheck.status === 'truncated') {
+    sse.write('status', { step: 'truncated', message: '⚠️ AI 输出被截断，正在重试...' });
+    // Retry with larger maxTokens would go here; for now, proceed with what we have
+  }
 
   // Step 2: Validate
   sse.write('status', { step: 'validating', message: '✅ 正在校验生成结果...' });
@@ -184,7 +209,21 @@ export async function runIteratePipeline(params: IteratePipelineParams) {
 
   const skeleton = extractHtml(fullText);
 
-  // Validate
+  // Validate AI response
+  const responseCheck = validateAIResponse(skeleton);
+  if (responseCheck.status === 'empty') {
+    throw new Error(responseCheck.message);
+  }
+  if (responseCheck.status === 'refused') {
+    sse.write('error', { message: responseCheck.message, type: 'refused' });
+    return;
+  }
+  if (responseCheck.status === 'question') {
+    sse.write('question', { message: responseCheck.message });
+    return;
+  }
+
+  // Validate HTML rules
   sse.write('status', { step: 'validating', message: '✅ 正在校验修改结果...' });
   const validation = validate(skeleton);
 

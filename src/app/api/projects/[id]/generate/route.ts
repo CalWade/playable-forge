@@ -15,12 +15,14 @@ export const POST = withAuth(async (request, { params, auth }) => {
   if (!project) return Response.json({ error: 'Project not found' }, { status: 404 });
 
   let description: string | undefined;
+  let safetyClarification = false;
   try {
     const body = await request.json();
     description = body.description;
+    safetyClarification = body.safetyClarification === true;
   } catch { /* empty body ok */ }
 
   return createSSEResponse((sse) =>
-    runGeneratePipeline({ projectId, description, sse })
+    runGeneratePipeline({ projectId, description, safetyClarification, sse })
   );
 });
