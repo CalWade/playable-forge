@@ -87,7 +87,7 @@ export async function batchGenerate(params: BatchGenerateParams): Promise<BatchR
     try {
       const b64 = await readBase64(fa.base64CachePath);
       fixedSlotMap.set(fa.slotName, { slotName: fa.slotName, base64DataUri: b64, mimeType: fa.mimeType });
-    } catch { /* skip */ }
+    } catch (e) { console.warn("Skipped:", e instanceof Error ? e.message : e); }
   }
 
   // Pre-load all variant assets base64
@@ -98,7 +98,7 @@ export async function batchGenerate(params: BatchGenerateParams): Promise<BatchR
         try {
           const b64 = await readBase64(asset.base64CachePath);
           assetB64Cache.set(asset.id, b64);
-        } catch { /* skip */ }
+        } catch (e) { console.warn("Skipped:", e instanceof Error ? e.message : e); }
       }
     }
   }

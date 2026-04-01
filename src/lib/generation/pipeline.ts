@@ -30,7 +30,7 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
   const referenceImageBase64: string[] = [];
   for (const ref of assets.filter((a) => a.category === 'reference')) {
     if (ref.base64CachePath) {
-      try { referenceImageBase64.push(await readBase64(ref.base64CachePath)); } catch { /* skip */ }
+      try { referenceImageBase64.push(await readBase64(ref.base64CachePath)); } catch (e) { console.warn("Skipped:", e instanceof Error ? e.message : e); }
     }
   }
 

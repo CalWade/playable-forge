@@ -40,7 +40,7 @@ export const DELETE = withAuth(async (_request, { params, auth }) => {
 
   const filesToDelete = [asset.filePath, asset.thumbnailPath, asset.base64CachePath].filter(Boolean);
   for (const f of filesToDelete) {
-    try { await fs.unlink(f!); } catch { /* ignore */ }
+    try { await fs.unlink(f!); } catch (e) { console.warn("Ignored:", e instanceof Error ? e.message : e); }
   }
 
   await prisma.asset.delete({ where: { id: params.assetId } });

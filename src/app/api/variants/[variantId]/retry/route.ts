@@ -37,7 +37,7 @@ export const POST = withAuth(async (_request, { params, auth }) => {
       try {
         const b64 = await readBase64(asset.base64CachePath);
         slotAssetMap.set(asset.slotName, { slotName: asset.slotName, base64DataUri: b64, mimeType: asset.mimeType });
-      } catch { /* skip */ }
+      } catch (e) { console.warn("Skipped:", e instanceof Error ? e.message : e); }
     }
   }
 
@@ -48,7 +48,7 @@ export const POST = withAuth(async (_request, { params, auth }) => {
       try {
         const b64 = await readBase64(vAsset.base64CachePath);
         slotAssetMap.set(vAsset.slotName, { slotName: vAsset.slotName, base64DataUri: b64, mimeType: vAsset.mimeType });
-      } catch { /* skip */ }
+      } catch (e) { console.warn("Skipped:", e instanceof Error ? e.message : e); }
     }
   }
 

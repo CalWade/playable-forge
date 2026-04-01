@@ -35,7 +35,7 @@ export const DELETE = withAuth(async (_request, { params, auth }) => {
 
   const dirs = ['uploads', 'base64', 'html'].map((d) => path.join(DATA_DIR, d, params.id));
   for (const dir of dirs) {
-    try { await fs.rm(dir, { recursive: true, force: true }); } catch { /* ignore */ }
+    try { await fs.rm(dir, { recursive: true, force: true }); } catch (e) { console.warn("Ignored:", e instanceof Error ? e.message : e); }
   }
 
   await prisma.variant.deleteMany({ where: { projectId: params.id } });

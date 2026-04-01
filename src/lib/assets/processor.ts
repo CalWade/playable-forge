@@ -1,7 +1,10 @@
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs/promises';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 
+const execFileAsync = promisify(execFile);
 const DATA_DIR = process.env.DATA_DIR || './data';
 
 interface ProcessResult {
@@ -88,8 +91,24 @@ export async function processAudio(
   return {
     compressedPath,
     compressedSize: stats.size,
-    duration: 0, // TODO: get duration with ffprobe
+    duration: await getAudioDuration(compressedPath),
   };
+}
+
+async function getAudioDuration(filePath: string): Promise<number> {
+  try {
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v', 'quiet',
+      '-show_entries', 'format=duration',
+      '-of', 'csv=p=0',
+      filePath,
+    ]);
+    const seconds = parseFloat(stdout.trim());
+    return isNaN(seconds) ? 0 : Math.round(seconds * 10) / 10;
+  } catch {
+    // ffprobe not installed or failed — return 0
+    return 0;
+  }
 }
 
 export function isImage(mimeType: string): boolean {
