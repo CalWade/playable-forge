@@ -35,7 +35,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ffecd2 100%)' }}>
+    <div className="flex min-h-screen items-center justify-center" style={{ background: 'linear-gradient(135deg, #cae9ff 0%, #a2d2ff 50%, #cae9ff 100%)' }}>
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-extrabold text-clay-text">PlayableForge</h1>
@@ -83,7 +83,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => { setIsRegister(!isRegister); setError(''); }}
-            className="w-full text-center text-sm font-semibold text-clay-pink-400 hover:text-clay-pink-300 clay-transition"
+            className="w-full text-center text-sm font-semibold text-clay-blue-400 hover:text-clay-blue-300 clay-transition"
           >
             {isRegister ? '已有账号？去登录' : '没有账号？去注册'}
           </button>

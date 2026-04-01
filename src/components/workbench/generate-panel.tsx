@@ -19,7 +19,7 @@ export function GeneratePanel({
         value={description}
         onChange={(e) => onDescriptionChange(e.target.value)}
         placeholder={"描述广告效果（可选）\n例如：背景图全屏展示，2秒后弹窗从底部滑入，弹窗上的按钮有呼吸动画，点击跳转商店"}
-        className="w-full max-w-md rounded-clay clay-inset bg-gradient-to-br from-[#f0e5f5] to-[#e8d8f0] px-4 py-3 text-sm font-medium text-clay-text placeholder:text-clay-muted focus:outline-none focus:clay-inset-focus resize-none clay-transition"
+        className="w-full max-w-md rounded-clay clay-inset bg-gradient-to-br from-[#e8f4ff] to-[#dceefb] px-4 py-3 text-sm font-medium text-clay-text placeholder:text-clay-muted focus:outline-none focus:clay-inset-focus resize-none clay-transition"
         rows={4}
       />
       <label className="mt-3 flex items-center gap-2 text-xs font-semibold text-clay-text/50 cursor-pointer">
@@ -27,7 +27,7 @@ export function GeneratePanel({
           type="checkbox"
           checked={safetyClarification}
           onChange={(e) => onSafetyClarificationChange(e.target.checked)}
-          className="rounded-lg accent-clay-pink-400"
+          className="rounded-lg accent-clay-blue-400"
         />
         添加安全声明（适用于游戏/博彩类广告素材）
       </label>

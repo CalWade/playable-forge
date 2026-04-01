@@ -44,10 +44,10 @@ export default function SettingsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #fff5f7 0%, #ffecd2 50%, #fff5f7 100%)' }}>
-        <header className="clay-gradient-pink clay-shadow-sm px-6 py-4">
+      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #e8f4ff 0%, #cae9ff 50%, #e8f4ff 100%)' }}>
+        <header className="clay-gradient-blue clay-shadow-sm px-6 py-4">
           <div className="flex items-center gap-3 max-w-2xl mx-auto">
-            <button onClick={() => router.push('/dashboard')} className="text-clay-pink-400 hover:text-clay-pink-300 clay-transition">
+            <button onClick={() => router.push('/dashboard')} className="text-clay-blue-400 hover:text-clay-blue-300 clay-transition">
               <ArrowLeft size={20} />
             </button>
             <h1 className="text-lg font-extrabold text-clay-text">设置</h1>
@@ -98,7 +98,7 @@ export default function SettingsPage() {
                 value={settings.ai.systemPromptOverride || ''}
                 onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, systemPromptOverride: e.target.value } })}
                 placeholder="留空使用默认 System Prompt..."
-                className="w-full rounded-clay clay-inset bg-gradient-to-br from-[#f0e5f5] to-[#e8d8f0] px-4 py-3 text-sm font-medium font-mono text-clay-text placeholder:text-clay-muted focus:outline-none focus:clay-inset-focus resize-y clay-transition"
+                className="w-full rounded-clay clay-inset bg-gradient-to-br from-[#e8f4ff] to-[#dceefb] px-4 py-3 text-sm font-medium font-mono text-clay-text placeholder:text-clay-muted focus:outline-none focus:clay-inset-focus resize-y clay-transition"
                 rows={10}
               />
             </CardContent>

@@ -12,7 +12,7 @@ interface ChatInputProps {
 
 export function ChatInput({ input, onInputChange, onSend, onAttach, isStreaming }: ChatInputProps) {
   return (
-    <div className="border-t border-clay-pink-50 p-3">
+    <div className="border-t border-clay-blue-50 p-3">
       <div className="flex gap-2">
         <input
           value={input}
@@ -20,9 +20,9 @@ export function ChatInput({ input, onInputChange, onSend, onAttach, isStreaming 
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); } }}
           placeholder="描述修改需求..."
           disabled={isStreaming}
-          className="flex-1 rounded-clay clay-inset bg-gradient-to-br from-[#f0e5f5] to-[#e8d8f0] px-4 py-2.5 text-sm font-medium text-clay-text placeholder:text-clay-muted focus:outline-none focus:clay-inset-focus clay-transition"
+          className="flex-1 rounded-clay clay-inset bg-gradient-to-br from-[#e8f4ff] to-[#dceefb] px-4 py-2.5 text-sm font-medium text-clay-text placeholder:text-clay-muted focus:outline-none focus:clay-inset-focus clay-transition"
         />
-        <label className="flex cursor-pointer items-center rounded-clay-sm clay-gradient-surface clay-shadow-sm p-2.5 text-clay-muted hover:text-clay-pink-300 clay-transition">
+        <label className="flex cursor-pointer items-center rounded-clay-sm clay-gradient-surface clay-shadow-sm p-2.5 text-clay-muted hover:text-clay-blue-300 clay-transition">
           <input
             type="file"
             accept="image/*"

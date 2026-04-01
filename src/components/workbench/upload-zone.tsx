@@ -45,12 +45,12 @@ export function UploadZone({ projectId, onUploadComplete }: UploadZoneProps) {
       onDragLeave={() => setIsDragging(false)}
       onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
       className={`relative rounded-clay-lg border-2 border-dashed p-6 text-center clay-transition ${
-        isDragging ? 'border-clay-pink-300 bg-clay-pink-50/30' : 'border-clay-pink-100 hover:border-clay-pink-200'
+        isDragging ? 'border-clay-blue-300 bg-clay-blue-50/30' : 'border-clay-blue-100 hover:border-clay-blue-200'
       }`}
     >
       {uploading ? (
         <div className="flex items-center justify-center gap-2">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-clay-pink-300 border-t-transparent" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-clay-blue-300 border-t-transparent" />
           <span className="text-sm font-medium text-clay-text/50">上传中...</span>
         </div>
       ) : (

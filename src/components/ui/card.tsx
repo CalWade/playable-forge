@@ -14,7 +14,7 @@ Card.displayName = 'Card';
 
 const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('pb-4 mb-4 border-b border-clay-pink-50', className)} {...props} />
+    <div ref={ref} className={cn('pb-4 mb-4 border-b border-clay-blue-50', className)} {...props} />
   )
 );
 CardHeader.displayName = 'CardHeader';

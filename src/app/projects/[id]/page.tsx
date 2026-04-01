@@ -83,9 +83,9 @@ export default function ProjectWorkbenchPage() {
     <ProtectedRoute>
       <div className="flex h-screen flex-col">
         {/* Header */}
-        <header className="flex items-center justify-between clay-gradient-pink clay-shadow-sm px-5 py-3 flex-shrink-0">
+        <header className="flex items-center justify-between clay-gradient-blue clay-shadow-sm px-5 py-3 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <button onClick={() => router.push('/dashboard')} className="text-clay-pink-400 hover:text-clay-pink-300 clay-transition flex-shrink-0">
+            <button onClick={() => router.push('/dashboard')} className="text-clay-blue-400 hover:text-clay-blue-300 clay-transition flex-shrink-0">
               <ArrowLeft size={18} />
             </button>
             {editingName ? (
@@ -97,7 +97,7 @@ export default function ProjectWorkbenchPage() {
                   autoFocus
                   className="rounded-clay-sm clay-inset px-3 py-1 text-sm font-bold focus:outline-none focus:clay-inset-focus"
                 />
-                <button onClick={handleRename} className="text-xs font-bold text-clay-pink-400">保存</button>
+                <button onClick={handleRename} className="text-xs font-bold text-clay-blue-400">保存</button>
                 <button onClick={() => setEditingName(false)} className="text-xs font-bold text-clay-muted">取消</button>
               </div>
             ) : (
@@ -126,17 +126,17 @@ export default function ProjectWorkbenchPage() {
               </span>
             )}
           </div>
-          <button onClick={() => router.push('/settings')} className="text-clay-pink-400 hover:text-clay-pink-300 clay-transition">
+          <button onClick={() => router.push('/settings')} className="text-clay-blue-400 hover:text-clay-blue-300 clay-transition">
             <Settings size={20} />
           </button>
         </header>
 
         {/* Three-column layout */}
         <div className="flex flex-1 overflow-hidden bg-clay-bg">
-          <div className="w-72 flex-shrink-0 overflow-y-auto border-r border-clay-pink-50 bg-white/80">
+          <div className="w-72 flex-shrink-0 overflow-y-auto border-r border-clay-blue-50 bg-white/80">
             <AssetPanel projectId={projectId} />
           </div>
-          <div className="flex flex-1 flex-col border-r border-clay-pink-50 bg-white/80">
+          <div className="flex flex-1 flex-col border-r border-clay-blue-50 bg-white/80">
             <ChatPanel
               projectId={projectId}
               onVersionChange={(vid) => { setCurrentVersionId(vid); refreshVersions(); }}
@@ -155,7 +155,7 @@ export default function ProjectWorkbenchPage() {
         </div>
 
         {/* Bottom bar */}
-        <div className="flex items-center justify-end gap-3 clay-gradient-pink clay-shadow-sm px-5 py-3 flex-shrink-0">
+        <div className="flex items-center justify-end gap-3 clay-gradient-blue clay-shadow-sm px-5 py-3 flex-shrink-0">
           {currentVersionId && (
             <a
               href={`/api/projects/${projectId}/preview/${currentVersionId}?token=${token}`}

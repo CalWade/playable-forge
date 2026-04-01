@@ -17,7 +17,7 @@ export function VersionList({ versions, token, projectId, onVersionChange, onRef
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span
-                className="cursor-pointer text-sm font-bold text-clay-pink-400 hover:text-clay-pink-300 clay-transition"
+                className="cursor-pointer text-sm font-bold text-clay-blue-400 hover:text-clay-blue-300 clay-transition"
                 onClick={() => onVersionChange(v.id)}
               >
                 v{v.version}
@@ -47,7 +47,7 @@ export function VersionList({ versions, token, projectId, onVersionChange, onRef
                     onRefresh(); onVersionChange(v.id);
                   } catch { /* ignore */ }
                 }}
-                className="text-xs font-bold text-clay-muted hover:text-clay-pink-400 clay-transition"
+                className="text-xs font-bold text-clay-muted hover:text-clay-blue-400 clay-transition"
               >
                 ↩ 回退
               </button>

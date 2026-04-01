@@ -15,8 +15,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           'inline-flex items-center justify-center font-bold clay-transition focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
           {
             'clay-gradient-primary text-white clay-shadow hover:clay-shadow-hover hover:-translate-y-0.5 active:translate-y-0 active:clay-shadow-active': variant === 'default',
-            'clay-gradient-pink text-clay-pink-400 clay-shadow-sm hover:clay-shadow hover:-translate-y-0.5 active:translate-y-0': variant === 'outline',
-            'text-clay-text hover:bg-clay-pink-50/50': variant === 'ghost',
+            'clay-gradient-blue text-clay-blue-400 clay-shadow-sm hover:clay-shadow hover:-translate-y-0.5 active:translate-y-0': variant === 'outline',
+            'text-clay-text hover:bg-clay-blue-50/50': variant === 'ghost',
             'bg-gradient-to-br from-red-300 to-red-400 text-white clay-shadow hover:clay-shadow-hover': variant === 'destructive',
           },
           {

@@ -7,7 +7,7 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-br from-clay-pink-50 to-clay-pink-100 text-clay-text",
+        default: "bg-gradient-to-br from-clay-blue-50 to-clay-blue-100 text-clay-text",
         secondary: "bg-gradient-to-br from-gray-100 to-gray-200 text-clay-text",
         destructive: "bg-gradient-to-br from-red-200 to-red-300 text-red-700",
         outline: "bg-white text-clay-text",

@@ -24,7 +24,7 @@ export function SimpleTabs({ tabs, defaultTab, children, className }: SimpleTabs
               'px-4 py-2 text-sm font-bold rounded-clay-sm clay-transition',
               activeTab === tab.id
                 ? 'clay-gradient-primary text-white clay-shadow-sm'
-                : 'text-clay-text hover:bg-clay-pink-50/50'
+                : 'text-clay-text hover:bg-clay-blue-50/50'
             )}
           >
             {tab.label}

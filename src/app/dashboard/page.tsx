@@ -40,14 +40,14 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #fff5f7 0%, #ffecd2 50%, #fff5f7 100%)' }}>
+      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #e8f4ff 0%, #cae9ff 50%, #e8f4ff 100%)' }}>
         {/* Top bar */}
-        <header className="clay-gradient-pink clay-shadow-sm px-6 py-4">
+        <header className="clay-gradient-blue clay-shadow-sm px-6 py-4">
           <div className="flex items-center justify-between max-w-5xl mx-auto">
             <h1 className="text-xl font-extrabold text-clay-text">PlayableForge</h1>
             <div className="flex items-center gap-3">
               <span className="text-sm font-semibold text-clay-text/60">{user?.displayName || user?.username}</span>
-              <button onClick={logout} className="text-sm font-bold text-clay-pink-400 hover:text-clay-pink-300 clay-transition">
+              <button onClick={logout} className="text-sm font-bold text-clay-blue-400 hover:text-clay-blue-300 clay-transition">
                 登出
               </button>
             </div>
@@ -79,7 +79,7 @@ export default function DashboardPage() {
           <Card>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="h-6 w-6 animate-spin rounded-full border-3 border-clay-pink-200 border-t-clay-pink-400" />
+                <div className="h-6 w-6 animate-spin rounded-full border-3 border-clay-blue-200 border-t-clay-blue-400" />
               </div>
             ) : data?.recentProjects?.length === 0 ? (
               <div className="py-12 text-center text-sm font-medium text-clay-muted">
@@ -92,7 +92,7 @@ export default function DashboardPage() {
                     <div
                       key={p.id}
                       onClick={() => router.push(`/projects/${p.id}`)}
-                      className="flex cursor-pointer items-center justify-between rounded-clay clay-gradient-pink px-5 py-4 clay-shadow-sm hover:clay-shadow hover:-translate-y-0.5 clay-transition"
+                      className="flex cursor-pointer items-center justify-between rounded-clay clay-gradient-blue px-5 py-4 clay-shadow-sm hover:clay-shadow hover:-translate-y-0.5 clay-transition"
                     >
                       <div className="flex items-center gap-4">
                         <span className="text-sm font-bold text-clay-text">{p.name}</span>
@@ -105,7 +105,7 @@ export default function DashboardPage() {
                         <span className="text-sm font-medium text-clay-text/40">
                           {new Date(p.createdAt).toLocaleDateString('zh-CN')}
                         </span>
-                        <ArrowRight size={16} className="text-clay-pink-200" />
+                        <ArrowRight size={16} className="text-clay-blue-200" />
                       </div>
                     </div>
                   )
@@ -124,7 +124,7 @@ export default function DashboardPage() {
                     <div
                       key={a.id}
                       onClick={() => router.push(`/projects/${a.projectId}`)}
-                      className="flex cursor-pointer items-center justify-between rounded-clay-sm bg-clay-bg/50 px-4 py-3 hover:bg-clay-pink-50/30 clay-transition"
+                      className="flex cursor-pointer items-center justify-between rounded-clay-sm bg-clay-bg/50 px-4 py-3 hover:bg-clay-blue-50/30 clay-transition"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="text-xs flex-shrink-0">{a.role === 'user' ? '👤' : '🤖'}</span>
