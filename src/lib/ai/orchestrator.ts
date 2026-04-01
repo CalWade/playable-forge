@@ -60,14 +60,16 @@ export async function generateSkeleton(params: GenerateParams) {
     textPrompt = `${SAFETY_CLARIFICATION}\n\n${textPrompt}`;
   }
 
+  const systemPrompt = await getSystemPrompt(GENERATE_SYSTEM_PROMPT);
+
   const result = streamText({
     model: getModel(),
-    system: await getSystemPrompt(GENERATE_SYSTEM_PROMPT),
+    system: systemPrompt,
     prompt: textPrompt,
     maxOutputTokens: 16000,
   });
 
-  return result;
+  return { stream: result, prompt: textPrompt, systemPrompt };
 }
 
 interface IterateParams {
@@ -85,20 +87,19 @@ export async function iterateSkeleton(params: IterateParams) {
     messages.push({ role: msg.role, content: msg.content });
   }
 
-  // Current iteration request
-  messages.push({
-    role: 'user',
-    content: `当前 HTML 骨架：\n\`\`\`html\n${params.currentSkeleton}\n\`\`\`\n\n修改要求：${params.userMessage}`,
-  });
+  const systemPrompt = await getSystemPrompt(ITERATE_SYSTEM_PROMPT);
+  const userPrompt = `当前 HTML 骨架：\n\`\`\`html\n${params.currentSkeleton}\n\`\`\`\n\n修改要求：${params.userMessage}`;
+
+  messages.push({ role: 'user', content: userPrompt });
 
   const result = streamText({
     model: getModel(),
-    system: await getSystemPrompt(ITERATE_SYSTEM_PROMPT),
+    system: systemPrompt,
     messages,
     maxOutputTokens: 16000,
   });
 
-  return result;
+  return { stream: result, prompt: userPrompt, systemPrompt };
 }
 
 export async function autofixSkeleton(

@@ -10,6 +10,7 @@ import { GeneratePanel } from './generate-panel';
 import { MessageList } from './message-list';
 import { ChatInput } from './chat-input';
 import { VersionList } from './version-list';
+import { DebugPanel } from './debug-panel';
 
 interface ChatPanelProps {
   projectId: string;
@@ -22,7 +23,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
   const [input, setInput] = useState('');
   const [description, setDescription] = useState('');
   const [safetyClarification, setSafetyClarification] = useState(false);
-  const { isStreaming, lastEvent, startStream } = useSSE();
+  const { isStreaming, lastEvent, debugLog, startStream } = useSSE();
 
   const fetcher = async (url: string) => {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -141,6 +142,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
           )
         }
       </Tabs>
+      <DebugPanel entries={debugLog} />
     </div>
   );
 }

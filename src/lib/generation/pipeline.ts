@@ -60,10 +60,16 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
     safetyClarification: params.safetyClarification,
   });
 
+  // Emit debug info
+  sse.write('debug', { type: 'system_prompt', content: result.systemPrompt });
+  sse.write('debug', { type: 'user_prompt', content: result.prompt });
+
   let fullText = '';
-  for await (const chunk of result.textStream) {
+  for await (const chunk of result.stream.textStream) {
     fullText += chunk;
   }
+
+  sse.write('debug', { type: 'ai_response', content: fullText });
 
   // Validate raw AI response BEFORE extracting HTML
   const responseCheck = validateAIResponse(fullText);
@@ -240,10 +246,15 @@ export async function runIteratePipeline(params: IteratePipelineParams) {
     conversationHistory: convHistory,
   });
 
+  sse.write('debug', { type: 'system_prompt', content: result.systemPrompt });
+  sse.write('debug', { type: 'user_prompt', content: result.prompt });
+
   let fullText = '';
-  for await (const chunk of result.textStream) {
+  for await (const chunk of result.stream.textStream) {
     fullText += chunk;
   }
+
+  sse.write('debug', { type: 'ai_response', content: fullText });
 
   // Validate raw AI response BEFORE extracting HTML
   const responseCheck = validateAIResponse(fullText);
