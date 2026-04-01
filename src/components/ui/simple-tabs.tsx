@@ -15,16 +15,16 @@ export function SimpleTabs({ tabs, defaultTab, children, className }: SimpleTabs
 
   return (
     <div className={cn('flex flex-col', className)}>
-      <div className="flex border-b border-gray-200">
+      <div className="flex gap-1 p-2">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'px-4 py-2.5 text-sm font-medium transition-colors',
+              'px-4 py-2 text-sm font-bold rounded-clay-sm clay-transition',
               activeTab === tab.id
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'clay-gradient-primary text-white clay-shadow-sm'
+                : 'text-clay-text hover:bg-clay-pink-50/50'
             )}
           >
             {tab.label}

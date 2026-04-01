@@ -1,36 +1,30 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium transition-colors",
+  "inline-flex items-center rounded-clay-sm px-3 py-1 text-xs font-bold clay-shadow-sm clay-transition",
   {
     variants: {
       variant: {
-        default: "bg-gray-100 text-gray-700",
-        secondary: "bg-gray-100 text-gray-600",
-        destructive: "bg-red-100 text-red-700",
-        outline: "border border-gray-200 text-gray-700",
-        success: "bg-green-100 text-green-700",
-        warning: "bg-yellow-100 text-yellow-700",
-        error: "bg-red-100 text-red-700",
-        info: "bg-blue-100 text-blue-700",
+        default: "bg-gradient-to-br from-clay-pink-50 to-clay-pink-100 text-clay-text",
+        secondary: "bg-gradient-to-br from-gray-100 to-gray-200 text-clay-text",
+        destructive: "bg-gradient-to-br from-red-200 to-red-300 text-red-700",
+        outline: "bg-white text-clay-text",
+        success: "bg-gradient-to-br from-clay-green-50 to-clay-green-100 text-green-700",
+        warning: "bg-gradient-to-br from-clay-yellow-50 to-clay-yellow-100 text-yellow-700",
+        error: "bg-gradient-to-br from-red-200 to-red-300 text-red-700",
+        info: "bg-gradient-to-br from-clay-blue-50 to-clay-blue-100 text-blue-700",
       },
     },
-    defaultVariants: {
-      variant: "default",
-    },
+    defaultVariants: { variant: "default" },
   }
-)
+);
 
-interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof badgeVariants> {}
+interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
-  return (
-    <span className={cn(badgeVariants({ variant }), className)} {...props} />
-  )
+  return <span className={cn(badgeVariants({ variant }), className)} {...props} />;
 }
 
-export { Badge, badgeVariants }
+export { Badge, badgeVariants };

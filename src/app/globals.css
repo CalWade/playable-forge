@@ -2,56 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
+/* ============================================================
+   CLAYMORPHISM DESIGN SYSTEM — PlayableForge (Pink Theme)
+   ============================================================ */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
-  }
+    /* Pink Macaron Palette */
+    --clay-pink-50: #ffc8dd;
+    --clay-pink-100: #ffb3d9;
+    --clay-pink-200: #ff99ac;
+    --clay-pink-300: #ff8fb3;
+    --clay-pink-400: #ff6a88;
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --clay-purple-50: #e4c1f9;
+    --clay-purple-100: #d4a5f3;
+    --clay-purple-200: #c48ee8;
+
+    --clay-green-50: #d8f3dc;
+    --clay-green-100: #b7e4c7;
+    --clay-green-200: #95d5b2;
+
+    --clay-yellow-50: #fff4bd;
+    --clay-yellow-100: #ffe6a7;
+    --clay-yellow-200: #ffd98e;
+
+    --clay-blue-50: #cae9ff;
+    --clay-blue-100: #a2d2ff;
+
+    --clay-white: #ffffff;
+    --clay-bg: #fff5f7;
+    --clay-surface: #ffffff;
+    --clay-text: #495057;
+    --clay-text-secondary: #6c757d;
+    --clay-text-muted: #adb5bd;
+
+    /* shadcn compat */
+    --background: 0 0% 100%;
+    --foreground: 210 11% 30%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 11% 30%;
+    --primary: 340 100% 70%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 330 100% 90%;
+    --secondary-foreground: 340 80% 45%;
+    --muted: 330 30% 95%;
+    --muted-foreground: 210 11% 50%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --border: 330 40% 90%;
+    --input: 330 40% 92%;
+    --ring: 340 100% 70%;
+    --radius: 24px;
   }
 }
 
@@ -60,6 +62,62 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    background: var(--clay-bg);
+    color: var(--clay-text);
+    font-family: 'Nunito', 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+@layer utilities {
+  .clay-shadow {
+    box-shadow:
+      -4px -4px 12px rgba(255, 255, 255, 0.6),
+      4px 4px 12px rgba(255, 143, 179, 0.4),
+      inset -2px -2px 4px rgba(255, 255, 255, 0.2),
+      inset 2px 2px 4px rgba(255, 143, 179, 0.3);
+  }
+  .clay-shadow-hover {
+    box-shadow:
+      -6px -6px 16px rgba(255, 255, 255, 0.7),
+      6px 6px 16px rgba(255, 143, 179, 0.5),
+      inset -2px -2px 4px rgba(255, 255, 255, 0.2),
+      inset 2px 2px 4px rgba(255, 143, 179, 0.3);
+  }
+  .clay-shadow-active {
+    box-shadow:
+      -2px -2px 8px rgba(255, 255, 255, 0.5),
+      2px 2px 8px rgba(255, 143, 179, 0.3),
+      inset -3px -3px 6px rgba(255, 255, 255, 0.1),
+      inset 3px 3px 6px rgba(255, 143, 179, 0.4);
+  }
+  .clay-shadow-sm {
+    box-shadow:
+      -3px -3px 8px rgba(255, 255, 255, 0.6),
+      3px 3px 8px rgba(255, 143, 179, 0.3),
+      inset -1px -1px 3px rgba(255, 255, 255, 0.2),
+      inset 1px 1px 3px rgba(255, 143, 179, 0.2);
+  }
+  .clay-inset {
+    box-shadow:
+      inset 3px 3px 8px rgba(200, 170, 220, 0.3),
+      inset -3px -3px 8px rgba(255, 255, 255, 0.5);
+  }
+  .clay-inset-focus {
+    box-shadow:
+      inset 4px 4px 10px rgba(200, 170, 220, 0.4),
+      inset -4px -4px 10px rgba(255, 255, 255, 0.6),
+      0 0 0 4px rgba(255, 143, 179, 0.2);
+  }
+  .clay-transition {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .clay-gradient-pink {
+    background: linear-gradient(145deg, var(--clay-pink-50), var(--clay-pink-100));
+  }
+  .clay-gradient-primary {
+    background: linear-gradient(145deg, var(--clay-pink-200), var(--clay-pink-400));
+  }
+  .clay-gradient-surface {
+    background: linear-gradient(145deg, #ffffff, #fff0f5);
   }
 }

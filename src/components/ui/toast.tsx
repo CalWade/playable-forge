@@ -27,38 +27,28 @@ export function ToastProvider() {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
       }, 4000);
     };
-    return () => {
-      addToastFn = null;
-    };
+    return () => { addToastFn = null; };
   }, []);
 
   const icons = {
     success: <CheckCircle size={18} className="text-green-500" />,
-    error: <XCircle size={18} className="text-red-500" />,
+    error: <XCircle size={18} className="text-red-400" />,
     warning: <AlertTriangle size={18} className="text-yellow-500" />,
-    info: <CheckCircle size={18} className="text-blue-500" />,
+    info: <CheckCircle size={18} className="text-clay-blue-100" />,
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
+    <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-3">
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={cn(
-            'flex items-center gap-2 rounded-lg border bg-white px-4 py-3 shadow-lg animate-in slide-in-from-right',
-            {
-              'border-green-200': t.type === 'success',
-              'border-red-200': t.type === 'error',
-              'border-yellow-200': t.type === 'warning',
-              'border-blue-200': t.type === 'info',
-            }
-          )}
+          className="flex items-center gap-3 rounded-clay clay-gradient-surface clay-shadow px-5 py-3 animate-in slide-in-from-right"
         >
           {icons[t.type]}
-          <span className="text-sm text-gray-700">{t.message}</span>
+          <span className="text-sm font-medium text-clay-text">{t.message}</span>
           <button
             onClick={() => setToasts((prev) => prev.filter((toast) => toast.id !== t.id))}
-            className="ml-2 text-gray-400 hover:text-gray-600"
+            className="ml-2 text-clay-muted hover:text-clay-text clay-transition"
           >
             <X size={14} />
           </button>
