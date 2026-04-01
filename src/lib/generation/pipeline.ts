@@ -85,27 +85,60 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
   let skeleton = extractHtml(fullText);
 
   // Step 2: Validate HTML rules
+  // Step 2: Validate HTML rules
   sse.write('status', { step: 'validating', message: '✅ 正在校验生成结果...' });
   let validation = validate(skeleton);
+
+  // Show validation results
+  const passed = validation.results.filter((r) => r.passed);
+  const failed = validation.results.filter((r) => !r.passed);
+  
+  if (failed.length === 0) {
+    sse.write('status', { step: 'validated', message: `✅ 校验全部通过 (${validation.grade} 级)` });
+  } else {
+    const failedList = failed.map((r) => `${r.level === 'error' ? '❌' : '⚠️'} ${r.name}: ${r.detail}`).join('\n');
+    const errors = failed.filter((r) => r.level === 'error');
+    sse.write('status', { 
+      step: 'validation_issues', 
+      message: `📋 校验结果 (${validation.grade} 级): ${passed.length} 通过, ${failed.length} 未通过\n${failedList}` 
+    });
+
+    if (errors.length > 0) {
+      sse.write('status', { step: 'will_fix', message: `🔧 发现 ${errors.length} 个必须修复的问题，将自动尝试修复（最多 ${MAX_AUTO_FIX} 次）` });
+    }
+  }
 
   // Step 3: Auto-fix loop
   let fixAttempt = 0;
   while (fixAttempt < MAX_AUTO_FIX && validation.results.some((r) => r.level === 'error' && !r.passed)) {
     fixAttempt++;
-    const failedItems = validation.results.filter((r) => !r.passed).map((r) => `${r.name}: ${r.detail}`);
-    sse.write('status', { step: 'fixing', message: `🔧 校验未通过，正在自动修复 (${fixAttempt}/${MAX_AUTO_FIX})...` });
+    const failedItems = validation.results.filter((r) => !r.passed);
+    const failedDescriptions = failedItems.map((r) => `${r.name}: ${r.detail}`);
+    
+    sse.write('status', { 
+      step: 'fixing', 
+      message: `🔧 自动修复 (${fixAttempt}/${MAX_AUTO_FIX})...\n修复目标:\n${failedDescriptions.map(f => `  - ${f}`).join('\n')}` 
+    });
 
     try {
-      const fixedSkeleton = await autofixSkeleton(skeleton, failedItems);
+      const fixedSkeleton = await autofixSkeleton(skeleton, failedDescriptions);
       const fixCheck = validateAIResponse(fixedSkeleton);
       if (fixCheck.status !== 'valid' && fixCheck.status !== 'truncated') {
-        console.error(`Auto-fix attempt ${fixAttempt} returned invalid response: ${fixCheck.status}`);
+        sse.write('status', { step: 'fix_failed', message: `⚠️ 修复尝试 ${fixAttempt} 返回无效结果，停止修复` });
         break;
       }
       skeleton = fixedSkeleton;
       validation = validate(skeleton);
+
+      const newFailed = validation.results.filter((r) => !r.passed);
+      if (newFailed.length === 0) {
+        sse.write('status', { step: 'fix_success', message: `✅ 修复成功！校验全部通过 (${validation.grade} 级)` });
+      } else {
+        sse.write('status', { step: 'fix_progress', message: `🔄 修复后仍有 ${newFailed.length} 项未通过` });
+      }
     } catch (e) {
       console.error(`Auto-fix attempt ${fixAttempt} failed:`, e);
+      sse.write('status', { step: 'fix_error', message: `⚠️ 修复尝试 ${fixAttempt} 出错，停止修复` });
       break;
     }
   }
