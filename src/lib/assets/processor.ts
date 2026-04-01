@@ -81,10 +81,30 @@ export async function processAudio(
   const projectDir = path.join(DATA_DIR, 'uploads', projectId);
   await fs.mkdir(projectDir, { recursive: true });
 
-  // For now, just copy audio (FFmpeg compression can be added later)
-  const ext = path.extname(inputPath).toLowerCase();
-  const compressedPath = path.join(projectDir, `${assetId}-compressed${ext}`);
-  await fs.copyFile(inputPath, compressedPath);
+  const compressedPath = path.join(projectDir, `${assetId}-compressed.mp3`);
+
+  // Try FFmpeg compression: re-encode to MP3 128kbps mono
+  try {
+    await execFileAsync('ffmpeg', [
+      '-i', inputPath,
+      '-ac', '1',           // mono
+      '-ab', '128k',        // 128kbps
+      '-ar', '44100',       // 44.1kHz sample rate
+      '-y',                 // overwrite
+      compressedPath,
+    ]);
+  } catch {
+    // FFmpeg not installed or failed — fall back to copy
+    const ext = path.extname(inputPath).toLowerCase();
+    const fallbackPath = path.join(projectDir, `${assetId}-compressed${ext}`);
+    await fs.copyFile(inputPath, fallbackPath);
+    const stats = await fs.stat(fallbackPath);
+    return {
+      compressedPath: fallbackPath,
+      compressedSize: stats.size,
+      duration: await getAudioDuration(fallbackPath),
+    };
+  }
 
   const stats = await fs.stat(compressedPath);
 
