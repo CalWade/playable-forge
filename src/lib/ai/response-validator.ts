@@ -39,6 +39,17 @@ export function validateAIResponse(text: string): ValidationResult {
     return { status: 'empty', message: 'AI 未返回有效内容' };
   }
 
+  // Check refusal FIRST — before checking HTML structure
+  // AI might refuse but still include a template HTML
+  for (const pattern of REFUSAL_PATTERNS) {
+    if (pattern.test(trimmed)) {
+      return {
+        status: 'refused',
+        message: 'AI 因安全策略拒绝生成。可能是素材涉及敏感内容，请勾选"安全声明"后重试',
+      };
+    }
+  }
+
   const hasHtmlOpen = /<html[\s>]/i.test(trimmed);
   const hasHtmlClose = /<\/html>/i.test(trimmed);
   const hasDoctype = /<!DOCTYPE/i.test(trimmed);
@@ -54,18 +65,8 @@ export function validateAIResponse(text: string): ValidationResult {
     return { status: 'truncated', message: 'AI 输出被截断，HTML 不完整' };
   }
 
-  // No HTML at all — check if refusal or question
+  // No HTML at all — check if question or unknown
   if (!hasAnyHtmlTag) {
-    // Check refusal
-    for (const pattern of REFUSAL_PATTERNS) {
-      if (pattern.test(trimmed)) {
-        return {
-          status: 'refused',
-          message: 'AI 因安全策略拒绝生成。可能是素材涉及敏感内容，请勾选"安全声明"后重试',
-        };
-      }
-    }
-
     // Check question
     for (const pattern of QUESTION_PATTERNS) {
       if (pattern.test(trimmed)) {

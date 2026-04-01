@@ -65,10 +65,8 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
     fullText += chunk;
   }
 
-  let skeleton = extractHtml(fullText);
-
-  // Validate AI response before proceeding
-  const responseCheck = validateAIResponse(skeleton);
+  // Validate raw AI response BEFORE extracting HTML
+  const responseCheck = validateAIResponse(fullText);
   if (responseCheck.status === 'empty') {
     throw new Error(responseCheck.message);
   }
@@ -81,11 +79,12 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
     return;
   }
   if (responseCheck.status === 'truncated') {
-    sse.write('status', { step: 'truncated', message: '⚠️ AI 输出被截断，正在重试...' });
-    // Retry with larger maxTokens would go here; for now, proceed with what we have
+    sse.write('status', { step: 'truncated', message: '⚠️ AI 输出被截断，继续处理...' });
   }
 
-  // Step 2: Validate
+  let skeleton = extractHtml(fullText);
+
+  // Step 2: Validate HTML rules
   sse.write('status', { step: 'validating', message: '✅ 正在校验生成结果...' });
   let validation = validate(skeleton);
 
@@ -213,10 +212,8 @@ export async function runIteratePipeline(params: IteratePipelineParams) {
     fullText += chunk;
   }
 
-  const skeleton = extractHtml(fullText);
-
-  // Validate AI response
-  const responseCheck = validateAIResponse(skeleton);
+  // Validate raw AI response BEFORE extracting HTML
+  const responseCheck = validateAIResponse(fullText);
   if (responseCheck.status === 'empty') {
     throw new Error(responseCheck.message);
   }
@@ -228,6 +225,8 @@ export async function runIteratePipeline(params: IteratePipelineParams) {
     sse.write('question', { message: responseCheck.message });
     return;
   }
+
+  const skeleton = extractHtml(fullText);
 
   // Validate HTML rules
   sse.write('status', { step: 'validating', message: '✅ 正在校验修改结果...' });
