@@ -107,7 +107,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
       <Tabs tabs={[{ id: 'chat', label: '对话' }, { id: 'versions', label: '版本' }]}>
         {(activeTab) =>
           activeTab === 'chat' ? (
-            <div className="flex flex-1 flex-col" style={{ height: 'calc(100vh - 140px)' }}>
+            <div className="flex flex-1 flex-col" >
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {!hasVersion && (
                   <GeneratePanel

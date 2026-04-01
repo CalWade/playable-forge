@@ -116,7 +116,7 @@ export default function VariantsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="flex h-screen flex-col bg-clay-bg">
         <header className="border-b border-gray-200 bg-white px-6 py-4">
           <div className="flex items-center gap-3">
             <button onClick={() => router.push(`/projects/${projectId}`)} className="text-gray-400 hover:text-gray-600">
@@ -126,7 +126,7 @@ export default function VariantsPage() {
           </div>
         </header>
 
-        <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 57px)' }}>
+        <div className="flex flex-1 overflow-hidden" >
           <SkeletonPreview
             projectId={projectId}
             lockedVersion={lockedVersion || null}

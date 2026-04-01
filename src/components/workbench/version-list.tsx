@@ -11,7 +11,7 @@ interface VersionListProps {
 
 export function VersionList({ versions, token, projectId, onVersionChange, onRefresh }: VersionListProps) {
   return (
-    <div className="overflow-y-auto p-4 space-y-3" style={{ height: 'calc(100vh - 140px)' }}>
+    <div className="flex-1 overflow-y-auto p-4 space-y-3" >
       {versions.map((v) => (
         <div key={v.id} className="rounded-clay clay-gradient-surface clay-shadow-sm p-4 hover:clay-shadow hover:-translate-y-0.5 clay-transition">
           <div className="flex items-center justify-between">
