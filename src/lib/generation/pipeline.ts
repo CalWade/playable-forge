@@ -97,7 +97,13 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
     sse.write('status', { step: 'fixing', message: `🔧 校验未通过，正在自动修复 (${fixAttempt}/${MAX_AUTO_FIX})...` });
 
     try {
-      skeleton = await autofixSkeleton(skeleton, failedItems);
+      const fixedSkeleton = await autofixSkeleton(skeleton, failedItems);
+      const fixCheck = validateAIResponse(fixedSkeleton);
+      if (fixCheck.status !== 'valid' && fixCheck.status !== 'truncated') {
+        console.error(`Auto-fix attempt ${fixAttempt} returned invalid response: ${fixCheck.status}`);
+        break;
+      }
+      skeleton = fixedSkeleton;
       validation = validate(skeleton);
     } catch (e) {
       console.error(`Auto-fix attempt ${fixAttempt} failed:`, e);
