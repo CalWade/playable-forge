@@ -41,10 +41,11 @@ export function DimensionConfig({
       <h3 className="mb-4 font-semibold text-gray-900">变体维度</h3>
       {configLoading ? (
         <div className="py-4 text-center text-sm text-gray-400">加载中...</div>
-      ) : rawDimensions.length === 0 ? (
-        <p className="text-sm text-gray-400">没有标记为&ldquo;参与变体&rdquo;的素材</p>
       ) : (
         <div className="space-y-4">
+          {rawDimensions.length === 0 && (
+            <p className="text-sm text-gray-400">还没有变体素材，点击下方按钮上传</p>
+          )}
           {rawDimensions.map((d) => {
             const override = dimensionOverrides[d.name];
             const isEnabled = override?.enabled !== false;
