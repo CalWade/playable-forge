@@ -58,15 +58,3 @@ export const ITERATE_SYSTEM_PROMPT = `你是一个 Playable Ad HTML 开发专家
 
 ## 你需要返回
 仅返回修改后的完整 HTML 代码，不要解释。`;
-
-export const AUTOFIX_PROMPT = `以下 HTML 校验未通过，请修复这些问题，返回修改后的完整 HTML 代码：
-
-校验失败项：
-{failedItems}
-
-当前 HTML：
-\`\`\`html
-{skeleton}
-\`\`\`
-
-请仅返回修复后的完整 HTML 代码，不要解释。`;
