@@ -20,7 +20,6 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       if (isRegister) {
         await register(username, password, displayName || undefined);
@@ -36,16 +35,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center" style={{ background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ffecd2 100%)' }}>
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">PlayableForge</h1>
-          <p className="mt-2 text-sm text-gray-500">
-            {isRegister ? '创建账号' : '登录'}
+          <h1 className="text-3xl font-extrabold text-clay-text">PlayableForge</h1>
+          <p className="mt-2 text-sm font-medium text-clay-text/60">
+            {isRegister ? '创建账号' : '欢迎回来'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-5 rounded-clay-xl clay-gradient-surface clay-shadow p-8">
           <Input
             id="username"
             label="用户名"
@@ -75,21 +74,16 @@ export default function LoginPage() {
             required
           />
 
-          {error && (
-            <p className="text-sm text-red-500">{error}</p>
-          )}
+          {error && <p className="text-sm font-medium text-red-400">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
             {loading ? '处理中...' : isRegister ? '注册' : '登录'}
           </Button>
 
           <button
             type="button"
-            onClick={() => {
-              setIsRegister(!isRegister);
-              setError('');
-            }}
-            className="w-full text-center text-sm text-blue-600 hover:text-blue-700"
+            onClick={() => { setIsRegister(!isRegister); setError(''); }}
+            className="w-full text-center text-sm font-semibold text-clay-pink-400 hover:text-clay-pink-300 clay-transition"
           >
             {isRegister ? '已有账号？去登录' : '没有账号？去注册'}
           </button>

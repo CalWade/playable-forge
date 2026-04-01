@@ -83,9 +83,9 @@ export default function ProjectWorkbenchPage() {
     <ProtectedRoute>
       <div className="flex h-screen flex-col">
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2 flex-shrink-0">
+        <header className="flex items-center justify-between clay-gradient-pink clay-shadow-sm px-5 py-3 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+            <button onClick={() => router.push('/dashboard')} className="text-clay-pink-400 hover:text-clay-pink-300 clay-transition flex-shrink-0">
               <ArrowLeft size={18} />
             </button>
             {editingName ? (
@@ -95,10 +95,10 @@ export default function ProjectWorkbenchPage() {
                   onChange={(e) => setNameInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setEditingName(false); }}
                   autoFocus
-                  className="rounded border border-gray-300 px-2 py-0.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded-clay-sm clay-inset px-3 py-1 text-sm font-bold focus:outline-none focus:clay-inset-focus"
                 />
-                <button onClick={handleRename} className="text-xs text-blue-600">保存</button>
-                <button onClick={() => setEditingName(false)} className="text-xs text-gray-400">取消</button>
+                <button onClick={handleRename} className="text-xs font-bold text-clay-pink-400">保存</button>
+                <button onClick={() => setEditingName(false)} className="text-xs font-bold text-clay-muted">取消</button>
               </div>
             ) : (
               <h1
@@ -126,24 +126,24 @@ export default function ProjectWorkbenchPage() {
               </span>
             )}
           </div>
-          <button onClick={() => router.push('/settings')} className="text-gray-400 hover:text-gray-600">
+          <button onClick={() => router.push('/settings')} className="text-clay-pink-400 hover:text-clay-pink-300 clay-transition">
             <Settings size={20} />
           </button>
         </header>
 
         {/* Three-column layout */}
-        <div className="flex flex-1 overflow-hidden">
-          <div className="w-72 flex-shrink-0 overflow-y-auto border-r border-gray-200 bg-white">
+        <div className="flex flex-1 overflow-hidden bg-clay-bg">
+          <div className="w-72 flex-shrink-0 overflow-y-auto border-r border-clay-pink-50 bg-white/80">
             <AssetPanel projectId={projectId} />
           </div>
-          <div className="flex flex-1 flex-col border-r border-gray-200 bg-white">
+          <div className="flex flex-1 flex-col border-r border-clay-pink-50 bg-white/80">
             <ChatPanel
               projectId={projectId}
               onVersionChange={(vid) => { setCurrentVersionId(vid); refreshVersions(); }}
               hasVersion={!!currentVersionId}
             />
           </div>
-          <div className="flex flex-shrink-0 flex-col bg-white" style={{ width: 450 }}>
+          <div className="flex flex-shrink-0 flex-col bg-white/80" style={{ width: 450 }}>
             <PreviewPanel
               projectId={projectId}
               versionId={currentVersionId}
@@ -155,12 +155,12 @@ export default function ProjectWorkbenchPage() {
         </div>
 
         {/* Bottom bar */}
-        <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-white px-5 py-3 flex-shrink-0">
+        <div className="flex items-center justify-end gap-3 clay-gradient-pink clay-shadow-sm px-5 py-3 flex-shrink-0">
           {currentVersionId && (
             <a
               href={`/api/projects/${projectId}/preview/${currentVersionId}?token=${token}`}
               download="playable-ad.html"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 rounded-clay clay-gradient-surface clay-shadow-sm px-5 py-2.5 text-sm font-bold text-clay-text hover:clay-shadow hover:-translate-y-0.5 clay-transition"
             >
               ⬇ 下载 HTML
             </a>
