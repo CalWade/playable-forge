@@ -38,28 +38,25 @@ export default function SettingsPage() {
       });
       if (res.ok) toast('设置已保存', 'success');
       else throw new Error('Save failed');
-    } catch {
-      toast('保存失败', 'error');
-    } finally {
-      setSaving(false);
-    }
+    } catch { toast('保存失败', 'error'); }
+    finally { setSaving(false); }
   };
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <header className="border-b border-gray-200 bg-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-gray-600">
+      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #fff5f7 0%, #ffecd2 50%, #fff5f7 100%)' }}>
+        <header className="clay-gradient-pink clay-shadow-sm px-6 py-4">
+          <div className="flex items-center gap-3 max-w-2xl mx-auto">
+            <button onClick={() => router.push('/dashboard')} className="text-clay-pink-400 hover:text-clay-pink-300 clay-transition">
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-lg font-semibold text-gray-900">设置</h1>
+            <h1 className="text-lg font-extrabold text-clay-text">设置</h1>
           </div>
         </header>
 
         <main className="mx-auto max-w-2xl px-6 py-8 space-y-6">
           <Card>
-            <CardHeader><h3 className="font-semibold">AI 服务配置</h3></CardHeader>
+            <CardHeader><h3 className="font-bold text-clay-text">AI 服务配置</h3></CardHeader>
             <CardContent className="space-y-4">
               <Input label="API Base URL" value={settings.ai.baseUrl}
                 onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, baseUrl: e.target.value } })} />
@@ -71,7 +68,7 @@ export default function SettingsPage() {
           </Card>
 
           <Card>
-            <CardHeader><h3 className="font-semibold">校验规则</h3></CardHeader>
+            <CardHeader><h3 className="font-bold text-clay-text">校验规则</h3></CardHeader>
             <CardContent className="space-y-4">
               <Input label="文件体积上限 (bytes)" type="number" value={String(settings.validation.maxFileSize)}
                 onChange={(e) => setSettings({ ...settings, validation: { ...settings.validation, maxFileSize: Number(e.target.value) } })} />
@@ -82,7 +79,7 @@ export default function SettingsPage() {
           </Card>
 
           <Card>
-            <CardHeader><h3 className="font-semibold">压缩参数</h3></CardHeader>
+            <CardHeader><h3 className="font-bold text-clay-text">压缩参数</h3></CardHeader>
             <CardContent className="space-y-4">
               <Input label="图片质量 (0-100)" type="number" value={String(settings.compression.imageQuality)}
                 onChange={(e) => setSettings({ ...settings, compression: { ...settings.compression, imageQuality: Number(e.target.value) } })} />
@@ -94,21 +91,21 @@ export default function SettingsPage() {
           </Card>
 
           <Card>
-            <CardHeader><h3 className="font-semibold">System Prompt</h3></CardHeader>
+            <CardHeader><h3 className="font-bold text-clay-text">System Prompt</h3></CardHeader>
             <CardContent>
-              <p className="mb-2 text-xs text-gray-500">自定义 AI 生成时的系统指令（留空则使用默认 prompt）</p>
+              <p className="mb-2 text-xs font-medium text-clay-text/40">自定义 AI 生成时的系统指令（留空则使用默认 prompt）</p>
               <textarea
                 value={settings.ai.systemPromptOverride || ''}
                 onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, systemPromptOverride: e.target.value } })}
                 placeholder="留空使用默认 System Prompt..."
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                className="w-full rounded-clay clay-inset bg-gradient-to-br from-[#f0e5f5] to-[#e8d8f0] px-4 py-3 text-sm font-medium font-mono text-clay-text placeholder:text-clay-muted focus:outline-none focus:clay-inset-focus resize-y clay-transition"
                 rows={10}
               />
             </CardContent>
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={saving}>
+            <Button onClick={handleSave} disabled={saving} size="lg">
               {saving ? '保存中...' : '保存设置'}
             </Button>
           </div>

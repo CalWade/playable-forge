@@ -30,10 +30,7 @@ export default function DashboardPage() {
   const handleNewProject = async () => {
     const res = await fetch('/api/projects', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     });
     if (res.ok) {
       const { project } = await res.json();
@@ -43,14 +40,14 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #fff5f7 0%, #ffecd2 50%, #fff5f7 100%)' }}>
         {/* Top bar */}
-        <header className="border-b border-gray-200 bg-white px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-900">PlayableForge</h1>
+        <header className="clay-gradient-pink clay-shadow-sm px-6 py-4">
+          <div className="flex items-center justify-between max-w-5xl mx-auto">
+            <h1 className="text-xl font-extrabold text-clay-text">PlayableForge</h1>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-500">{user?.displayName || user?.username}</span>
-              <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600">
+              <span className="text-sm font-semibold text-clay-text/60">{user?.displayName || user?.username}</span>
+              <button onClick={logout} className="text-sm font-bold text-clay-pink-400 hover:text-clay-pink-300 clay-transition">
                 登出
               </button>
             </div>
@@ -67,9 +64,9 @@ export default function DashboardPage() {
               { label: '平均迭代', value: data?.avgIterations !== undefined ? `${data.avgIterations}轮` : '-' },
               { label: '预估节省', value: data?.estimatedHoursSaved !== undefined ? `${data.estimatedHoursSaved}h` : '-' },
             ].map((stat) => (
-              <Card key={stat.label} className="flex-1 px-5 py-4">
-                <p className="text-xs text-gray-500">{stat.label}</p>
-                <p className="mt-1 text-2xl font-bold text-gray-900">{stat.value}</p>
+              <Card key={stat.label} className="flex-1">
+                <p className="text-xs font-semibold text-clay-text/50">{stat.label}</p>
+                <p className="mt-1 text-2xl font-extrabold text-clay-text">{stat.value}</p>
               </Card>
             ))}
 
@@ -82,39 +79,33 @@ export default function DashboardPage() {
           <Card>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                <div className="h-6 w-6 animate-spin rounded-full border-3 border-clay-pink-200 border-t-clay-pink-400" />
               </div>
             ) : data?.recentProjects?.length === 0 ? (
-              <div className="py-12 text-center text-sm text-gray-400">
+              <div className="py-12 text-center text-sm font-medium text-clay-muted">
                 还没有项目，点击上方「新建项目」开始
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="space-y-3">
                 {data?.recentProjects?.map(
-                  (p: {
-                    id: string;
-                    name: string;
-                    status: string;
-                    variantCount: number;
-                    createdAt: string;
-                  }) => (
+                  (p: { id: string; name: string; status: string; variantCount: number; createdAt: string }) => (
                     <div
                       key={p.id}
                       onClick={() => router.push(`/projects/${p.id}`)}
-                      className="flex cursor-pointer items-center justify-between px-6 py-4 hover:bg-gray-50"
+                      className="flex cursor-pointer items-center justify-between rounded-clay clay-gradient-pink px-5 py-4 clay-shadow-sm hover:clay-shadow hover:-translate-y-0.5 clay-transition"
                     >
                       <div className="flex items-center gap-4">
-                        <span className="text-sm font-medium text-gray-900">{p.name}</span>
+                        <span className="text-sm font-bold text-clay-text">{p.name}</span>
                         <Badge variant={STATUS_MAP[p.status]?.variant || 'default'}>
                           {STATUS_MAP[p.status]?.label || p.status}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-6">
-                        <span className="text-sm text-gray-500">{p.variantCount}</span>
-                        <span className="text-sm text-gray-400">
+                        <span className="text-sm font-semibold text-clay-text/50">{p.variantCount}</span>
+                        <span className="text-sm font-medium text-clay-text/40">
                           {new Date(p.createdAt).toLocaleDateString('zh-CN')}
                         </span>
-                        <ArrowRight size={16} className="text-gray-300" />
+                        <ArrowRight size={16} className="text-clay-pink-200" />
                       </div>
                     </div>
                   )
@@ -126,24 +117,22 @@ export default function DashboardPage() {
           {/* Recent activity */}
           {data?.recentActivity && data.recentActivity.length > 0 && (
             <Card className="mt-6">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-900">最近活动</h3>
-              </div>
-              <div className="divide-y divide-gray-100">
+              <h3 className="text-sm font-bold text-clay-text mb-4">最近活动</h3>
+              <div className="space-y-2">
                 {data.recentActivity.map(
                   (a: { id: string; projectName: string; projectId: string; role: string; content: string; createdAt: string }) => (
                     <div
                       key={a.id}
                       onClick={() => router.push(`/projects/${a.projectId}`)}
-                      className="flex cursor-pointer items-center justify-between px-6 py-3 hover:bg-gray-50"
+                      className="flex cursor-pointer items-center justify-between rounded-clay-sm bg-clay-bg/50 px-4 py-3 hover:bg-clay-pink-50/30 clay-transition"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="text-xs flex-shrink-0">{a.role === 'user' ? '👤' : '🤖'}</span>
-                        <span className="text-sm text-gray-600 truncate">{a.content}</span>
+                        <span className="text-sm font-medium text-clay-text/70 truncate">{a.content}</span>
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                        <span className="text-xs text-gray-400">{a.projectName}</span>
-                        <span className="text-xs text-gray-300">
+                        <span className="text-xs font-semibold text-clay-text/40">{a.projectName}</span>
+                        <span className="text-xs text-clay-text/30">
                           {new Date(a.createdAt).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>

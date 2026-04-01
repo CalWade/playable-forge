@@ -2,15 +2,8 @@
 
 import { useRef, useEffect } from 'react';
 
-interface Message {
-  role: string;
-  content: string;
-}
-
-interface MessageListProps {
-  messages: Message[];
-  isStreaming: boolean;
-}
+interface Message { role: string; content: string; }
+interface MessageListProps { messages: Message[]; isStreaming: boolean; }
 
 export function MessageList({ messages, isStreaming }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -22,17 +15,14 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
   return (
     <>
       {messages.map((msg, i) => (
-        <div
-          key={i}
-          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-        >
+        <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
           <div
-            className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
+            className={`max-w-[80%] rounded-clay px-4 py-2.5 text-sm font-medium whitespace-pre-wrap clay-shadow-sm ${
               msg.role === 'user'
-                ? 'bg-blue-600 text-white'
+                ? 'clay-gradient-primary text-white'
                 : msg.role === 'system' || msg.role === 'status'
-                ? 'bg-gray-100 text-gray-500 italic'
-                : 'bg-gray-100 text-gray-800'
+                ? 'bg-clay-bg text-clay-text/50 italic'
+                : 'clay-gradient-surface text-clay-text'
             }`}
           >
             {msg.content}
@@ -41,7 +31,7 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
       ))}
       {isStreaming && (
         <div className="flex justify-start">
-          <div className="rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-500">
+          <div className="rounded-clay clay-gradient-surface clay-shadow-sm px-4 py-2.5 text-sm text-clay-text/50">
             <span className="animate-pulse">思考中...</span>
           </div>
         </div>
