@@ -13,9 +13,12 @@ interface DebugPanelProps {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  system_prompt: '📋 System Prompt',
-  user_prompt: '👤 User Prompt',
-  ai_response: '🤖 AI 原始返回',
+  generate_prompt: '📤 生成请求 (System + User Prompt)',
+  generate_response: '📥 生成返回 (AI 原始输出)',
+  iterate_prompt: '📤 迭代请求 (System + User Prompt)',
+  iterate_response: '📥 迭代返回 (AI 原始输出)',
+  autofix_prompt: '🔧 自修复请求',
+  autofix_response: '🔧 自修复返回',
 };
 
 export function DebugPanel({ entries }: DebugPanelProps) {

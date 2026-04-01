@@ -61,15 +61,14 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
   });
 
   // Emit debug info
-  sse.write('debug', { type: 'system_prompt', content: result.systemPrompt });
-  sse.write('debug', { type: 'user_prompt', content: result.prompt });
+  sse.write('debug', { type: 'generate_prompt', content: `[System Prompt]\n${result.systemPrompt}\n\n[User Prompt]\n${result.prompt}` });
 
   let fullText = '';
   for await (const chunk of result.stream.textStream) {
     fullText += chunk;
   }
 
-  sse.write('debug', { type: 'ai_response', content: fullText });
+  sse.write('debug', { type: 'generate_response', content: fullText });
 
   // Validate raw AI response BEFORE extracting HTML
   const responseCheck = validateAIResponse(fullText);
@@ -127,13 +126,18 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
     });
 
     try {
-      const fixedSkeleton = await autofixSkeleton(skeleton, failedDescriptions);
-      const fixCheck = validateAIResponse(fixedSkeleton);
+      const fixResult = await autofixSkeleton(skeleton, failedDescriptions);
+
+      // Emit debug info for auto-fix
+      sse.write('debug', { type: 'autofix_prompt', round: fixAttempt, content: `[System Prompt]\n${fixResult.systemPrompt}\n\n[User Prompt]\n${fixResult.prompt}` });
+      sse.write('debug', { type: 'autofix_response', round: fixAttempt, content: fixResult.rawResponse });
+
+      const fixCheck = validateAIResponse(fixResult.html);
       if (fixCheck.status !== 'valid' && fixCheck.status !== 'truncated') {
         sse.write('status', { step: 'fix_failed', message: `⚠️ 修复尝试 ${fixAttempt} 返回无效结果，停止修复` });
         break;
       }
-      skeleton = fixedSkeleton;
+      skeleton = fixResult.html;
       validation = validate(skeleton);
 
       const newFailed = validation.results.filter((r) => !r.passed);
@@ -246,15 +250,14 @@ export async function runIteratePipeline(params: IteratePipelineParams) {
     conversationHistory: convHistory,
   });
 
-  sse.write('debug', { type: 'system_prompt', content: result.systemPrompt });
-  sse.write('debug', { type: 'user_prompt', content: result.prompt });
+  sse.write('debug', { type: 'iterate_prompt', content: `[System Prompt]\n${result.systemPrompt}\n\n[User Prompt]\n${result.prompt}` });
 
   let fullText = '';
   for await (const chunk of result.stream.textStream) {
     fullText += chunk;
   }
 
-  sse.write('debug', { type: 'ai_response', content: fullText });
+  sse.write('debug', { type: 'iterate_response', content: fullText });
 
   // Validate raw AI response BEFORE extracting HTML
   const responseCheck = validateAIResponse(fullText);

@@ -105,17 +105,25 @@ export async function iterateSkeleton(params: IterateParams) {
 export async function autofixSkeleton(
   skeleton: string,
   failedItems: string[]
-): Promise<string> {
+): Promise<{ html: string; prompt: string; systemPrompt: string; rawResponse: string }> {
+  const systemPrompt = await getSystemPrompt(ITERATE_SYSTEM_PROMPT);
+  const prompt = `以下 HTML 校验未通过，请修复这些问题：\n\n校验失败项：\n${failedItems
+    .map((f) => `- ${f}`)
+    .join('\n')}\n\n当前 HTML：\n\`\`\`html\n${skeleton}\n\`\`\`\n\n请仅返回修复后的完整 HTML 代码。`;
+
   const result = await generateText({
     model: getModel(),
-    system: await getSystemPrompt(ITERATE_SYSTEM_PROMPT),
-    prompt: `以下 HTML 校验未通过，请修复这些问题：\n\n校验失败项：\n${failedItems
-      .map((f) => `- ${f}`)
-      .join('\n')}\n\n当前 HTML：\n\`\`\`html\n${skeleton}\n\`\`\`\n\n请仅返回修复后的完整 HTML 代码。`,
+    system: systemPrompt,
+    prompt,
     maxOutputTokens: 16000,
   });
 
-  return extractHtml(result.text);
+  return {
+    html: extractHtml(result.text),
+    prompt,
+    systemPrompt,
+    rawResponse: result.text,
+  };
 }
 
 /**
