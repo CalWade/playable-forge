@@ -50,10 +50,8 @@ export async function generateSkeleton(params: GenerateParams) {
     textPrompt += `\n\n## 用户描述\n${params.description}`;
   }
 
-  // Note: for reference images we'd use multimodal messages,
-  // but for simplicity we describe them in text for now
   if (params.referenceImageBase64 && params.referenceImageBase64.length > 0) {
-    textPrompt += `\n\n## 效果图\n已提供 ${params.referenceImageBase64.length} 张效果图作为参考。`;
+    textPrompt += `\n\n## 效果图\n已提供 ${params.referenceImageBase64.length} 张效果图作为布局参考，请仔细观察效果图中的元素布局、颜色搭配和整体风格。`;
   }
 
   if (params.safetyClarification) {
@@ -62,14 +60,28 @@ export async function generateSkeleton(params: GenerateParams) {
 
   const systemPrompt = await getSystemPrompt(GENERATE_SYSTEM_PROMPT);
 
+  // Build multimodal message content
+  const userContent: Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> = [
+    { type: 'text', text: textPrompt },
+  ];
+
+  // Add reference images as image parts (multimodal)
+  if (params.referenceImageBase64 && params.referenceImageBase64.length > 0) {
+    for (const imgB64 of params.referenceImageBase64) {
+      // imgB64 is already a data URI like "data:image/png;base64,..."
+      // Vercel AI SDK accepts data URIs directly
+      userContent.push({ type: 'image', image: imgB64 });
+    }
+  }
+
   const result = streamText({
     model: getModel(),
     system: systemPrompt,
-    prompt: textPrompt,
+    messages: [{ role: 'user' as const, content: userContent }],
     maxOutputTokens: 16000,
   });
 
-  return { stream: result, prompt: textPrompt, systemPrompt };
+  return { stream: result, prompt: textPrompt + (params.referenceImageBase64?.length ? `\n[+ ${params.referenceImageBase64.length} 张效果图]` : ''), systemPrompt };
 }
 
 interface IterateParams {

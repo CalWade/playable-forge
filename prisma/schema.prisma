@@ -104,6 +104,7 @@ model HtmlVersion {
   fullHtmlPath String?
   fullHtmlSize Int?
   isLocked     Boolean @default(false)
+  parentId     String? // points to source version when created via rollback
 
   validationGrade String?
   validationJson  String?

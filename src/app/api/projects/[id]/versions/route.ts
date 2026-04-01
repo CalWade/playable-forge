@@ -17,6 +17,7 @@ export const GET = withAuth(async (_request, { params, auth }) => {
       validationGrade: true,
       fullHtmlSize: true,
       aiModel: true,
+      parentId: true,
       createdAt: true,
     },
   });

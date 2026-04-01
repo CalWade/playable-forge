@@ -26,6 +26,7 @@ export const POST = withAuth(async (_request, { params, auth }) => {
       validationGrade: sourceVersion.validationGrade,
       validationJson: sourceVersion.validationJson,
       aiModel: sourceVersion.aiModel,
+      parentId: sourceVersion.id, // track rollback source for version tree
     },
   });
 

@@ -18,6 +18,13 @@ export function ChatInput({ input, onInputChange, onSend, onAttach, isStreaming 
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); } }}
+          onPaste={(e) => {
+            const files = Array.from(e.clipboardData.files);
+            if (files.length > 0) {
+              e.preventDefault();
+              files.forEach((f) => onAttach(f));
+            }
+          }}
           placeholder="描述修改需求..."
           disabled={isStreaming}
           className="flex-1 rounded-clay clay-inset bg-gradient-to-br from-[#e8f4ff] to-[#dceefb] px-4 py-2.5 text-sm font-medium text-clay-text placeholder:text-clay-muted focus:outline-none focus:clay-inset-focus clay-transition"
