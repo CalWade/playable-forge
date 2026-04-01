@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 
 interface DimensionAsset {
@@ -119,36 +120,63 @@ export function DimensionConfig({
             <span className="text-2xl">{totalCombinations}</span> 个变体
           </div>
 
-          {/* Auto-classify upload */}
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600">
-              <span>+ 新增变体素材（自动分类）</span>
-              <input
-                type="file"
-                multiple
-                accept="image/*,audio/*"
-                className="hidden"
-                onChange={async (e) => {
-                  const files = e.target.files;
-                  if (!files || files.length === 0) return;
-                  const formData = new FormData();
-                  Array.from(files).forEach((f) => formData.append('files', f));
-                  try {
-                    const res = await fetch(`/api/projects/${projectId}/variant-assets`, {
-                      method: 'POST',
-                      headers: { Authorization: `Bearer ${token}` },
-                      body: formData,
-                    });
-                    if (res.ok) window.location.reload();
-                  } catch { /* ignore */ }
-                  e.target.value = '';
-                }}
-              />
-            </label>
-            <p className="mt-1 text-xs text-gray-400">根据文件名自动归入维度（背景/弹窗/按钮），也可在每个维度旁的 + 按钮上传</p>
-          </div>
+          {/* Auto-classify upload with drag & drop */}
+          <VariantUploadZone projectId={projectId} token={token} />
         </div>
       )}
     </Card>
+  );
+}
+
+function VariantUploadZone({ projectId, token }: { projectId: string; token: string }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFiles = async (files: FileList | File[]) => {
+    if (files.length === 0) return;
+    setUploading(true);
+    const formData = new FormData();
+    Array.from(files).forEach((f) => formData.append('files', f));
+    try {
+      const res = await fetch(`/api/projects/${projectId}/variant-assets`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (res.ok) window.location.reload();
+    } catch { /* ignore */ }
+    setUploading(false);
+  };
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100">
+      <div
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
+        className={`relative rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+          isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+        }`}
+      >
+        {uploading ? (
+          <div className="flex items-center justify-center gap-2">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+            <span className="text-sm text-gray-500">上传中...</span>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-gray-500">拖拽变体素材到这里，或点击上传</p>
+            <p className="mt-1 text-xs text-gray-400">根据文件名自动归入维度（背景/弹窗/按钮）</p>
+            <input
+              type="file"
+              multiple
+              accept="image/*,audio/*"
+              onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ''; }}
+              className="absolute inset-0 cursor-pointer opacity-0"
+            />
+          </>
+        )}
+      </div>
+    </div>
   );
 }
