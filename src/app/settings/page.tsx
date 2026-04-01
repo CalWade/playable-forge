@@ -45,7 +45,7 @@ export default function SettingsPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #e8f4ff 0%, #cae9ff 50%, #e8f4ff 100%)' }}>
-        <header className="clay-gradient-blue clay-shadow-sm px-6 py-4">
+        <header className="rounded-clay-lg clay-gradient-surface clay-shadow mx-6 mt-4 px-6 py-4">
           <div className="flex items-center gap-3 max-w-2xl mx-auto">
             <button onClick={() => router.push('/dashboard')} className="text-clay-blue-400 hover:text-clay-blue-300 clay-transition">
               <ArrowLeft size={20} />

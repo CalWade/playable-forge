@@ -42,7 +42,7 @@ export default function DashboardPage() {
     <ProtectedRoute>
       <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #e8f4ff 0%, #cae9ff 50%, #e8f4ff 100%)' }}>
         {/* Top bar */}
-        <header className="clay-gradient-blue clay-shadow-sm px-6 py-4">
+        <header className="rounded-clay-lg clay-gradient-surface clay-shadow mx-6 mt-4 px-6 py-4">
           <div className="flex items-center justify-between max-w-5xl mx-auto">
             <h1 className="text-xl font-extrabold text-clay-text">PlayableForge</h1>
             <div className="flex items-center gap-3">
