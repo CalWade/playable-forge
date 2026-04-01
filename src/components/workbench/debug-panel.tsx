@@ -27,10 +27,12 @@ export function DebugPanel({ entries }: DebugPanelProps) {
 
   return (
     <>
-      {/* Toggle button - fixed on right edge */}
+      {/* Toggle button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-gray-800 text-white px-1 py-3 rounded-l-lg shadow-lg hover:bg-gray-700 transition-colors"
+        className={`fixed top-1/2 -translate-y-1/2 z-40 bg-gray-800 text-white px-1 py-3 rounded-l-lg shadow-lg hover:bg-gray-700 transition-all duration-300 ${
+          isOpen ? 'right-[480px]' : 'right-0'
+        }`}
         title="调试面板"
       >
         {isOpen ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
