@@ -13,10 +13,10 @@ interface MessageListProps {
 }
 
 export function MessageList({ messages, isStreaming }: MessageListProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
 
   return (
@@ -27,13 +27,14 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
           className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
         >
           <div
-            className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
+            className={[
+              'max-w-[82%] px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed',
               msg.role === 'user'
-                ? 'bg-blue-600 text-white'
+                ? 'rounded-clay-xl rounded-br-clay-sm bg-clay-primary text-white shadow-clay-effect-sm'
                 : msg.role === 'system' || msg.role === 'status'
-                ? 'bg-gray-100 text-gray-500 italic'
-                : 'bg-gray-100 text-gray-800'
-            }`}
+                ? 'rounded-clay-xl bg-clay-neutral-100 text-clay-text-muted italic text-xs border border-clay-border'
+                : 'rounded-clay-xl rounded-bl-clay-sm bg-clay-surface text-clay-text shadow-clay-effect-sm border border-clay-border',
+            ].join(' ')}
           >
             {msg.content}
           </div>
@@ -41,12 +42,20 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
       ))}
       {isStreaming && (
         <div className="flex justify-start">
-          <div className="rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-500">
-            <span className="animate-pulse">思考中...</span>
+          <div className="rounded-clay-xl bg-clay-surface border border-clay-border px-4 py-2.5 shadow-clay-xs">
+            <div className="flex items-center gap-1.5">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-clay-primary/60"
+                  style={{ animation: `clay-float 1.2s ease-in-out infinite`, animationDelay: `${i * 0.2}s` }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}
-      <div ref={messagesEndRef} />
+      <div ref={endRef} />
     </>
   );
 }

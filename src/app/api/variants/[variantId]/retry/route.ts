@@ -42,7 +42,7 @@ export const POST = withAuth(async (_request, { params, auth }) => {
   }
 
   // Override with variant assets from slot mapping
-  for (const [dimName, assetId] of Object.entries(slotMapping)) {
+  for (const [, assetId] of Object.entries(slotMapping)) {
     const vAsset = variantAssets.find((a) => a.id === assetId);
     if (vAsset && vAsset.base64CachePath) {
       try {

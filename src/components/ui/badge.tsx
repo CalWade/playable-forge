@@ -2,19 +2,30 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
+/**
+ * Clay Badge — small inflated pill labels.
+ * Each color variant gets its own pastel clay look.
+ */
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium transition-colors",
+  [
+    "inline-flex items-center justify-center",
+    "rounded-clay-full px-2.5 py-0.5",
+    "text-xs font-semibold",
+    "shadow-clay-xs",
+    "transition-all duration-150",
+  ].join(" "),
   {
     variants: {
       variant: {
-        default: "bg-gray-100 text-gray-700",
-        secondary: "bg-gray-100 text-gray-600",
-        destructive: "bg-red-100 text-red-700",
-        outline: "border border-gray-200 text-gray-700",
-        success: "bg-green-100 text-green-700",
-        warning: "bg-yellow-100 text-yellow-700",
-        error: "bg-red-100 text-red-700",
-        info: "bg-blue-100 text-blue-700",
+        default:     "bg-clay-neutral-100 text-clay-neutral-600 border border-clay-neutral-200",
+        secondary:   "bg-clay-surface2    text-clay-primary     border border-clay-primary/20",
+        success:     "bg-clay-success-lt  text-clay-success-dk  border border-clay-success/30",
+        warning:     "bg-clay-warning-lt  text-clay-warning-dk  border border-clay-warning/30",
+        error:       "bg-clay-danger-lt   text-clay-danger-dk   border border-clay-danger/30",
+        destructive: "bg-clay-danger-lt   text-clay-danger-dk   border border-clay-danger/30",
+        info:        "bg-clay-info-lt     text-clay-info-dk     border border-clay-info/30",
+        accent:      "bg-clay-accent-lt   text-clay-accent-dk   border border-clay-accent/30",
+        outline:     "bg-transparent      text-clay-text-muted  border-2 border-clay-border",
       },
     },
     defaultVariants: {

@@ -6,9 +6,9 @@ import { Monitor, Smartphone, RotateCcw } from 'lucide-react';
 
 const DEVICES = [
   { id: 'iphone13pro', label: 'iPhone 13 Pro', width: 390, height: 844 },
-  { id: 'iphoneSE', label: 'iPhone SE', width: 375, height: 667 },
-  { id: 'ipad', label: 'iPad', width: 768, height: 1024 },
-  { id: 'pixel5', label: 'Pixel 5', width: 393, height: 851 },
+  { id: 'iphoneSE',    label: 'iPhone SE',     width: 375, height: 667 },
+  { id: 'ipad',        label: 'iPad',           width: 768, height: 1024 },
+  { id: 'pixel5',      label: 'Pixel 5',        width: 393, height: 851 },
 ];
 
 interface PreviewPanelProps {
@@ -19,83 +19,87 @@ interface PreviewPanelProps {
   token: string;
 }
 
-export function PreviewPanel({
-  projectId,
-  versionId,
-  validationGrade,
-  htmlSize,
-  token,
-}: PreviewPanelProps) {
+const GRADE_VARIANT: Record<string, 'success' | 'info' | 'warning' | 'error'> = {
+  A: 'success', B: 'info', C: 'warning', D: 'error',
+};
+
+export function PreviewPanel({ projectId, versionId, validationGrade, htmlSize, token }: PreviewPanelProps) {
   const [isLandscape, setIsLandscape] = useState(false);
   const [deviceIdx, setDeviceIdx] = useState(0);
   const [replayKey, setReplayKey] = useState(0);
 
   const device = DEVICES[deviceIdx];
-  // In landscape mode, swap width and height
   const deviceW = isLandscape ? device.height : device.width;
-  const deviceH = isLandscape ? device.width : device.height;
+  const deviceH = isLandscape ? device.width  : device.height;
 
   const previewUrl = versionId
     ? `/api/projects/${projectId}/preview/${versionId}`
     : `/api/projects/${projectId}/preview`;
 
-  const gradeVariant =
-    validationGrade === 'A' ? 'success'
-      : validationGrade === 'B' ? 'info'
-      : validationGrade === 'C' ? 'warning'
-      : validationGrade === 'D' ? 'error'
-      : ('default' as const);
-
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-clay-surface">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2 flex-shrink-0">
-        <h3 className="text-sm font-semibold text-gray-900">预览</h3>
+      <div className="flex items-center justify-between border-b-2 border-clay-border px-4 py-2.5 shrink-0">
+        <h3 className="text-sm font-bold text-clay-text">预览</h3>
         <div className="flex items-center gap-2">
-          {validationGrade && <Badge variant={gradeVariant}>{validationGrade} 级</Badge>}
-          {htmlSize && <span className="text-[10px] text-gray-400">{(htmlSize / 1024).toFixed(0)}KB</span>}
+          {validationGrade && (
+            <Badge variant={GRADE_VARIANT[validationGrade] || 'default'}>
+              {validationGrade} 级
+            </Badge>
+          )}
+          {htmlSize && (
+            <span className="text-[10px] text-clay-text-faint font-medium">
+              {(htmlSize / 1024).toFixed(0)}KB
+            </span>
+          )}
         </div>
       </div>
 
       {/* Device controls */}
-      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-1.5 flex-shrink-0">
+      <div className="flex items-center justify-between border-b border-clay-border px-3 py-1.5 shrink-0">
         <div className="flex items-center gap-1">
           <button
             onClick={() => setIsLandscape(false)}
-            className={`rounded p-1 ${!isLandscape ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`rounded-clay-md p-1.5 transition-all duration-150 ${
+              !isLandscape
+                ? 'bg-clay-primary-lt text-clay-primary shadow-clay-xs'
+                : 'text-clay-text-faint hover:text-clay-text'
+            }`}
           >
-            <Smartphone size={14} />
+            <Smartphone size={13} />
           </button>
           <button
             onClick={() => setIsLandscape(true)}
-            className={`rounded p-1 ${isLandscape ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`rounded-clay-md p-1.5 transition-all duration-150 ${
+              isLandscape
+                ? 'bg-clay-primary-lt text-clay-primary shadow-clay-xs'
+                : 'text-clay-text-faint hover:text-clay-text'
+            }`}
           >
-            <Monitor size={14} />
+            <Monitor size={13} />
           </button>
           <button
             onClick={() => setReplayKey((k) => k + 1)}
-            className="rounded p-1 text-gray-400 hover:text-gray-600"
+            className="rounded-clay-md p-1.5 text-clay-text-faint hover:text-clay-primary transition-colors"
             title="重播"
           >
-            <RotateCcw size={14} />
+            <RotateCcw size={13} />
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-400">{deviceW}×{deviceH}</span>
+          <span className="text-[10px] text-clay-text-faint">{deviceW}×{deviceH}</span>
           <select
             value={deviceIdx}
             onChange={(e) => setDeviceIdx(Number(e.target.value))}
-            className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] text-gray-600"
+            className="rounded-clay-md border border-clay-border bg-clay-neutral-50 px-2 py-0.5 text-[10px] text-clay-text shadow-clay-input focus:outline-none"
           >
-            {DEVICES.map((d, i) => (
-              <option key={d.id} value={i}>{d.label}</option>
-            ))}
+            {DEVICES.map((d, i) => <option key={d.id} value={i}>{d.label}</option>)}
           </select>
         </div>
       </div>
 
-      {/* Preview iframe - scaled to fit panel while maintaining device aspect ratio */}
-      <div className="flex-1 flex items-center justify-center overflow-hidden bg-gray-100 p-3">
+      {/* Preview area */}
+      <div className="flex-1 flex items-center justify-center overflow-hidden bg-clay-neutral-100 p-3">
         {versionId ? (
           <DeviceFrame
             width={deviceW}
@@ -104,29 +108,24 @@ export function PreviewPanel({
             frameKey={`${versionId}-${isLandscape}-${deviceIdx}-${replayKey}`}
           />
         ) : (
-          <p className="text-sm text-gray-400">生成后即可预览</p>
+          <div className="text-center">
+            <p className="text-4xl mb-3">📱</p>
+            <p className="text-sm text-clay-text-muted">生成后即可预览</p>
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-/**
- * Device frame that renders an iframe at native device size,
- * then scales it down to fit the available container.
- */
 function DeviceFrame({
-  width,
-  height,
-  src,
-  frameKey,
+  width, height, src, frameKey,
 }: {
   width: number;
   height: number;
   src: string;
   frameKey: string;
 }) {
-  // Use a container ref to calculate scale
   const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
 
   const scale = containerSize.w > 0
@@ -143,10 +142,11 @@ function DeviceFrame({
       className="relative w-full h-full flex items-center justify-center"
     >
       <div
-        className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg"
+        className="overflow-hidden rounded-clay-xl shadow-clay-effect-lg"
         style={{
-          width: width * scale,
+          width:  width  * scale,
           height: height * scale,
+          border: '3px solid rgba(147,112,219,0.25)',
         }}
       >
         <iframe

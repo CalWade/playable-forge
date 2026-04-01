@@ -47,7 +47,6 @@ export default function VariantsPage() {
   const rawDimensions = configData?.dimensions || [];
   const variants = variantData?.variants || [];
 
-  // Apply dimension overrides
   const dimensions = rawDimensions.map((d: { name: string; assets: Array<{ id: string }> }) => {
     const override = dimensionOverrides[d.name];
     if (!override) return { ...d, enabled: true };
@@ -58,9 +57,12 @@ export default function VariantsPage() {
     };
   });
 
-  const enabledDimensions = dimensions.filter((d: { enabled: boolean; assets: { length: number } }) => d.enabled && d.assets.length > 0);
+  const enabledDimensions = dimensions.filter(
+    (d: { enabled: boolean; assets: { length: number } }) => d.enabled && d.assets.length > 0
+  );
   const totalCombinations = enabledDimensions.length > 0
-    ? enabledDimensions.reduce((acc: number, d: { assets: { length: number } }) => acc * d.assets.length, 1) : 0;
+    ? enabledDimensions.reduce((acc: number, d: { assets: { length: number } }) => acc * d.assets.length, 1)
+    : 0;
 
   const toggleDimension = (name: string, enabled: boolean) => {
     const raw = rawDimensions.find((d: { name: string }) => d.name === name);
@@ -87,7 +89,8 @@ export default function VariantsPage() {
     setGenerating(true);
     try {
       const res = await fetch(`/api/projects/${projectId}/variants/generate`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` },
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed');
       const data = await res.json();
@@ -104,7 +107,8 @@ export default function VariantsPage() {
     if (!lockedVersion) return;
     try {
       await fetch(`/api/projects/${projectId}/versions/${lockedVersion.id}/unlock`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` },
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
       });
       window.location.reload();
     } catch { /* ignore */ }
@@ -116,17 +120,53 @@ export default function VariantsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <header className="border-b border-gray-200 bg-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.push(`/projects/${projectId}`)} className="text-gray-400 hover:text-gray-600">
-              <ArrowLeft size={20} />
-            </button>
-            <h1 className="text-lg font-semibold text-gray-900">变体生成</h1>
+      <div className="min-h-screen clay-bg">
+        {/* Header */}
+        <header className="sticky top-0 z-20 border-b-2 border-clay-border bg-clay-surface/90 backdrop-blur-md px-6 py-3.5 shadow-clay-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon-sm" onClick={() => router.push(`/projects/${projectId}`)}>
+                <ArrowLeft size={17} />
+              </Button>
+              <h1 className="text-base font-bold text-clay-text">变体生成</h1>
+            </div>
+            {/* Bottom bar actions moved to header for compactness */}
+            <div className="flex items-center gap-2.5">
+              {configData?.estimatedTotalSize && (
+                <span className="hidden md:block text-xs text-clay-text-muted">
+                  预估体积: {(configData.estimatedTotalSize / 1024 / 1024).toFixed(1)} MB
+                </span>
+              )}
+              {variants.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(`/api/projects/${projectId}/variants/download?token=${token}`, '_blank')}
+                >
+                  <Download size={14} />
+                  批量下载
+                </Button>
+              )}
+              <Button
+                onClick={handleGenerate}
+                disabled={generating || !lockedVersion}
+                size="sm"
+              >
+                <Sparkles size={14} />
+                {generating ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin-soft" />
+                    生成中...
+                  </span>
+                ) : '开始生成'}
+              </Button>
+            </div>
           </div>
         </header>
 
-        <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 57px)' }}>
+        {/* Split layout */}
+        <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 57px)' }}>
+          {/* Skeleton sidebar */}
           <SkeletonPreview
             projectId={projectId}
             lockedVersion={lockedVersion || null}
@@ -134,7 +174,8 @@ export default function VariantsPage() {
             onUnlock={handleUnlock}
           />
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Main content */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-5">
             <DimensionConfig
               rawDimensions={rawDimensions}
               dimensionOverrides={dimensionOverrides}
@@ -160,37 +201,19 @@ export default function VariantsPage() {
                     method: 'POST',
                     headers: { Authorization: `Bearer ${token}` },
                   });
-                  if (res.ok) {
-                    toast('重试成功', 'success');
-                    refreshVariants();
-                  } else {
-                    toast('重试失败', 'error');
-                  }
+                  if (res.ok) { toast('重试成功', 'success'); refreshVariants(); }
+                  else toast('重试失败', 'error');
                 } catch { toast('重试失败', 'error'); }
               }}
             />
 
-            {/* Bottom bar */}
-            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4">
-              <div className="text-sm text-gray-500">
-                {configData?.estimatedTotalSize
-                  ? `预估总体积: ${(configData.estimatedTotalSize / 1024 / 1024).toFixed(1)} MB`
-                  : ''}
-                <span className="ml-4">预估成本: $0（纯素材替换，不调 AI）</span>
-                {variants.length > 0 && <span className="ml-4">已完成 {variants.length}/{totalCombinations}</span>}
+            {variants.length > 0 && (
+              <div className="text-xs text-clay-text-faint text-center pb-2">
+                已完成 {variants.length} / {totalCombinations} 个变体
+                <span className="mx-3">·</span>
+                预估成本: $0（纯素材替换，不调 AI）
               </div>
-              <div className="flex gap-3">
-                {variants.length > 0 && (
-                  <Button variant="outline" onClick={() => window.open(`/api/projects/${projectId}/variants/download?token=${token}`, '_blank')}>
-                    <Download size={16} className="mr-1" /> 批量下载
-                  </Button>
-                )}
-                <Button onClick={handleGenerate} disabled={generating || !lockedVersion}>
-                  <Sparkles size={16} className="mr-1" />
-                  {generating ? '生成中...' : '开始生成'}
-                </Button>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 

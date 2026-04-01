@@ -15,37 +15,40 @@ interface VariantMatrixProps {
   onPreview: (id: string) => void;
 }
 
-function gradeColor(grade: string | null) {
-  if (grade === 'A') return 'border-green-400';
-  if (grade === 'B') return 'border-blue-400';
-  if (grade === 'C') return 'border-yellow-400';
-  return 'border-red-400';
-}
+const GRADE_VARIANT: Record<string, 'success' | 'info' | 'warning' | 'error'> = {
+  A: 'success', B: 'info', C: 'warning', D: 'error',
+};
 
 export function VariantMatrix({ variants, onPreview }: VariantMatrixProps) {
   if (variants.length === 0) return null;
 
   return (
-    <Card className="p-6">
-      <h3 className="mb-4 font-semibold text-gray-900">变体矩阵</h3>
-      <div className="grid grid-cols-6 gap-3">
-        {variants.map((v) => (
-          <div
-            key={v.id}
-            onClick={() => onPreview(v.id)}
-            className={`cursor-pointer rounded-lg border-2 p-2 text-center hover:shadow-md transition-shadow ${gradeColor(v.validationGrade)}`}
-          >
-            <p className="truncate text-xs font-medium text-gray-700">{v.name}</p>
-            <div className="flex items-center justify-center gap-1 mt-1">
-              <Badge variant={v.validationGrade === 'A' || v.validationGrade === 'B' ? 'success' : 'warning'}>
-                {v.validationGrade}
-              </Badge>
-              <span className="text-[10px] text-gray-400">
-                {v.fullHtmlSize ? `${(v.fullHtmlSize / 1024).toFixed(0)}KB` : ''}
-              </span>
-            </div>
-          </div>
-        ))}
+    <Card>
+      <div className="px-5 pt-5 pb-0">
+        <h3 className="text-sm font-bold text-clay-text mb-4">变体矩阵</h3>
+      </div>
+      <div className="px-5 pb-5">
+        <div className="grid grid-cols-6 gap-2.5">
+          {variants.map((v) => (
+            <button
+              key={v.id}
+              onClick={() => onPreview(v.id)}
+              className="group rounded-clay-xl bg-clay-neutral-50 border-2 border-clay-border p-2.5 text-center hover:shadow-clay-effect-sm hover:border-clay-primary/40 hover:-translate-y-0.5 transition-all duration-150"
+            >
+              <p className="truncate text-[11px] font-semibold text-clay-text mb-1.5">{v.name}</p>
+              <div className="flex flex-col items-center gap-1">
+                <Badge variant={GRADE_VARIANT[v.validationGrade || ''] || 'default'} className="text-[9px]">
+                  {v.validationGrade || '?'}
+                </Badge>
+                {v.fullHtmlSize && (
+                  <span className="text-[9px] text-clay-text-faint">
+                    {(v.fullHtmlSize / 1024).toFixed(0)}KB
+                  </span>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     </Card>
   );

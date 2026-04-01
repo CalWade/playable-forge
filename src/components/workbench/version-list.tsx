@@ -1,5 +1,8 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
+import { RotateCcw } from 'lucide-react';
+
 interface Version {
   id: string;
   version: number;
@@ -16,33 +19,38 @@ interface VersionListProps {
   onRefresh: () => void;
 }
 
+const GRADE_VARIANT: Record<string, 'success' | 'info' | 'warning' | 'error'> = {
+  A: 'success', B: 'info', C: 'warning', D: 'error',
+};
+
 export function VersionList({ versions, token, projectId, onVersionChange, onRefresh }: VersionListProps) {
   return (
-    <div className="overflow-y-auto p-4 space-y-2" style={{ height: 'calc(100vh - 140px)' }}>
+    <div className="overflow-y-auto px-3 py-3 space-y-2" style={{ height: 'calc(100vh - 140px)' }}>
       {versions.map((v) => (
-        <div key={v.id} className="rounded-lg border border-gray-200 p-3 hover:bg-gray-50">
+        <div
+          key={v.id}
+          className="rounded-clay-xl bg-clay-surface border-2 border-clay-border shadow-clay-xs hover:shadow-clay-effect-sm transition-all duration-150 p-3.5"
+        >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span
-                className="cursor-pointer text-sm font-medium text-blue-600 hover:underline"
+            <div className="flex items-center gap-2.5">
+              {/* Version pill */}
+              <button
                 onClick={() => onVersionChange(v.id)}
+                className="px-3 py-1 rounded-clay-full bg-clay-primary-lt text-clay-primary-dk text-sm font-bold hover:bg-clay-primary hover:text-white transition-all duration-150 shadow-clay-xs"
               >
                 v{v.version}
-              </span>
-              {v.isLocked && <span className="text-xs text-blue-600">🔒 已锁定</span>}
+              </button>
+              {v.isLocked && (
+                <Badge variant="info">🔒 已锁定</Badge>
+              )}
               {v.validationGrade && (
-                <span className={`text-xs px-1.5 py-0.5 rounded ${
-                  v.validationGrade === 'A' ? 'bg-green-100 text-green-700' :
-                  v.validationGrade === 'B' ? 'bg-blue-100 text-blue-700' :
-                  v.validationGrade === 'C' ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-red-100 text-red-700'
-                }`}>
-                  {v.validationGrade}
-                </span>
+                <Badge variant={GRADE_VARIANT[v.validationGrade] || 'default'}>
+                  {v.validationGrade} 级
+                </Badge>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs text-clay-text-faint">
                 {new Date(v.createdAt).toLocaleTimeString('zh-CN')}
               </span>
               <button
@@ -56,17 +64,21 @@ export function VersionList({ versions, token, projectId, onVersionChange, onRef
                     onVersionChange(v.id);
                   } catch { /* ignore */ }
                 }}
-                className="text-xs text-gray-400 hover:text-blue-600"
+                className="flex items-center gap-1 text-xs text-clay-text-faint hover:text-clay-primary transition-colors rounded-clay-md px-2 py-1 hover:bg-clay-primary-lt"
                 title="回退到此版本"
               >
-                ↩ 回退
+                <RotateCcw size={11} />
+                回退
               </button>
             </div>
           </div>
         </div>
       ))}
       {versions.length === 0 && (
-        <p className="py-8 text-center text-sm text-gray-400">还没有版本</p>
+        <div className="py-12 text-center">
+          <p className="text-3xl mb-3">📋</p>
+          <p className="text-sm text-clay-text-muted">还没有版本</p>
+        </div>
       )}
     </div>
   );

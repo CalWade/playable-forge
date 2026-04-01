@@ -2,7 +2,11 @@
 
 import { ReactNode, useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Check } from 'lucide-react';
+
+/* ------------------------------------------------------------------ */
+/* Generic Dropdown                                                     */
+/* ------------------------------------------------------------------ */
 
 interface DropdownProps {
   trigger: ReactNode;
@@ -17,9 +21,7 @@ export function Dropdown({ trigger, children, align = 'left', className }: Dropd
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -33,7 +35,12 @@ export function Dropdown({ trigger, children, align = 'left', className }: Dropd
       {open && (
         <div
           className={cn(
-            'absolute z-50 mt-1 min-w-[160px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg',
+            'absolute z-50 mt-2 min-w-[160px]',
+            'rounded-clay-xl bg-clay-surface',
+            'border-2 border-clay-border',
+            'shadow-clay-effect-md',
+            'py-1.5',
+            'animate-clay-bounce-in',
             align === 'right' ? 'right-0' : 'left-0'
           )}
           onClick={() => setOpen(false)}
@@ -44,6 +51,10 @@ export function Dropdown({ trigger, children, align = 'left', className }: Dropd
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Dropdown Item                                                        */
+/* ------------------------------------------------------------------ */
 
 interface DropdownItemProps {
   children: ReactNode;
@@ -56,7 +67,10 @@ export function DropdownItem({ children, onClick, className }: DropdownItemProps
     <button
       onClick={onClick}
       className={cn(
-        'flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50',
+        'flex w-full items-center px-3.5 py-2',
+        'text-sm font-medium text-clay-text',
+        'hover:bg-clay-neutral-100 hover:text-clay-primary',
+        'transition-colors duration-100',
         className
       )}
     >
@@ -64,6 +78,10 @@ export function DropdownItem({ children, onClick, className }: DropdownItemProps
     </button>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Select Dropdown                                                      */
+/* ------------------------------------------------------------------ */
 
 interface SelectDropdownProps {
   value: string;
@@ -73,7 +91,13 @@ interface SelectDropdownProps {
   placeholder?: string;
 }
 
-export function SelectDropdown({ value, options, onChange, className, placeholder }: SelectDropdownProps) {
+export function SelectDropdown({
+  value,
+  options,
+  onChange,
+  className,
+  placeholder,
+}: SelectDropdownProps) {
   const selected = options.find((o) => o.value === value);
 
   return (
@@ -81,21 +105,38 @@ export function SelectDropdown({ value, options, onChange, className, placeholde
       trigger={
         <div
           className={cn(
-            'flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-sm hover:bg-gray-50',
+            'flex items-center justify-between gap-1.5',
+            'rounded-clay-md border-2 border-clay-border',
+            'bg-clay-neutral-50',
+            'px-3 py-1.5',
+            'text-sm text-clay-text',
+            'shadow-clay-input',
+            'hover:border-clay-primary/40 transition-colors duration-150',
             className
           )}
         >
-          <span className={selected ? 'text-gray-700' : 'text-gray-400'}>
+          <span className={selected ? 'text-clay-text' : 'text-clay-text-faint'}>
             {selected?.label || placeholder || '选择...'}
           </span>
-          <ChevronDown size={14} className="text-gray-400" />
+          <ChevronDown size={13} className="text-clay-text-muted shrink-0" />
         </div>
       }
     >
       {options.map((option) => (
-        <DropdownItem key={option.value} onClick={() => onChange(option.value)}>
+        <button
+          key={option.value}
+          onClick={() => onChange(option.value)}
+          className={cn(
+            'flex w-full items-center justify-between gap-2 px-3.5 py-2',
+            'text-sm font-medium transition-colors duration-100',
+            option.value === value
+              ? 'text-clay-primary bg-clay-primary-lt/60'
+              : 'text-clay-text hover:bg-clay-neutral-100 hover:text-clay-primary'
+          )}
+        >
           {option.label}
-        </DropdownItem>
+          {option.value === value && <Check size={13} className="text-clay-primary" />}
+        </button>
       ))}
     </Dropdown>
   );

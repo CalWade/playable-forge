@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { withAuth } from '@/lib/auth/middleware';
 import { processImage, isImage } from '@/lib/assets/processor';

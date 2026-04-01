@@ -1,15 +1,35 @@
 import * as React from "react"
 import { Input as InputPrimitive } from "@base-ui/react/input"
-
 import { cn } from "@/lib/utils"
 
+/**
+ * Clay Input — a concave/sunken slot carved into the clay surface.
+ * Inner shadow creates the illusion of depth (like a pressed groove).
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <InputPrimitive
       type={type}
       data-slot="input"
       className={cn(
-        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "h-10 w-full min-w-0",
+        "rounded-clay-md",
+        "border-2 border-clay-border",
+        "bg-clay-neutral-50",
+        "px-3.5 py-2",
+        "text-sm text-clay-text",
+        "placeholder:text-clay-text-faint",
+        /* Sunken / concave clay shadow */
+        "shadow-clay-input",
+        "transition-all duration-150",
+        /* Focus: ring + deepen the groove */
+        "focus-visible:outline-none focus-visible:border-clay-primary/50 focus-visible:shadow-clay-input-focus",
+        /* Disabled */
+        "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+        /* File input */
+        "file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-clay-text",
+        /* Validation */
+        "aria-invalid:border-clay-danger/60 aria-invalid:shadow-none",
         className
       )}
       {...props}
