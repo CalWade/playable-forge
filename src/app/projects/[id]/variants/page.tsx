@@ -154,6 +154,20 @@ export default function VariantsPage() {
               token={token || ''}
               onPreview={setPreviewVariantId}
               onShowReport={setValidationReportId}
+              onRetry={async (variantId) => {
+                try {
+                  const res = await fetch(`/api/variants/${variantId}/retry`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                  });
+                  if (res.ok) {
+                    toast('重试成功', 'success');
+                    refreshVariants();
+                  } else {
+                    toast('重试失败', 'error');
+                  }
+                } catch { toast('重试失败', 'error'); }
+              }}
             />
 
             {/* Bottom bar */}

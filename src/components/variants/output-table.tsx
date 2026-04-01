@@ -7,6 +7,7 @@ interface Variant {
   name: string;
   validationGrade: string | null;
   fullHtmlSize: number | null;
+  status?: string;
 }
 
 interface OutputTableProps {
@@ -14,9 +15,10 @@ interface OutputTableProps {
   token: string;
   onPreview: (id: string) => void;
   onShowReport: (id: string) => void;
+  onRetry: (id: string) => void;
 }
 
-export function OutputTable({ variants, token, onPreview, onShowReport }: OutputTableProps) {
+export function OutputTable({ variants, token, onPreview, onShowReport, onRetry }: OutputTableProps) {
   if (variants.length === 0) return null;
 
   return (
@@ -48,6 +50,9 @@ export function OutputTable({ variants, token, onPreview, onShowReport }: Output
                 <button onClick={() => onPreview(v.id)} className="text-xs text-blue-600 hover:underline">预览</button>
                 <a href={`/api/variants/${v.id}/preview?token=${token}`} download={`${v.name}.html`} className="text-xs text-blue-600 hover:underline">下载</a>
                 <button onClick={() => onShowReport(v.id)} className="text-xs text-gray-500 hover:underline">校验报告</button>
+                {(v.validationGrade === 'C' || v.validationGrade === 'D' || v.status === 'failed') && (
+                  <button onClick={() => onRetry(v.id)} className="text-xs text-orange-600 hover:underline">重试</button>
+                )}
               </td>
             </tr>
           ))}
