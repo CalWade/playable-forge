@@ -30,19 +30,20 @@ export function PreviewPanel({
   const [deviceIdx, setDeviceIdx] = useState(0);
   const [replayKey, setReplayKey] = useState(0);
 
+  const device = DEVICES[deviceIdx];
+  // In landscape mode, swap width and height
+  const deviceW = isLandscape ? device.height : device.width;
+  const deviceH = isLandscape ? device.width : device.height;
+
   const previewUrl = versionId
     ? `/api/projects/${projectId}/preview/${versionId}`
     : `/api/projects/${projectId}/preview`;
 
   const gradeVariant =
-    validationGrade === 'A'
-      ? 'success'
-      : validationGrade === 'B'
-      ? 'info'
-      : validationGrade === 'C'
-      ? 'warning'
-      : validationGrade === 'D'
-      ? 'error'
+    validationGrade === 'A' ? 'success'
+      : validationGrade === 'B' ? 'info'
+      : validationGrade === 'C' ? 'warning'
+      : validationGrade === 'D' ? 'error'
       : ('default' as const);
 
   return (
@@ -51,14 +52,8 @@ export function PreviewPanel({
       <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2 flex-shrink-0">
         <h3 className="text-sm font-semibold text-gray-900">预览</h3>
         <div className="flex items-center gap-2">
-          {validationGrade && (
-            <Badge variant={gradeVariant}>{validationGrade} 级</Badge>
-          )}
-          {htmlSize && (
-            <span className="text-[10px] text-gray-400">
-              {(htmlSize / 1024).toFixed(0)}KB
-            </span>
-          )}
+          {validationGrade && <Badge variant={gradeVariant}>{validationGrade} 级</Badge>}
+          {htmlSize && <span className="text-[10px] text-gray-400">{(htmlSize / 1024).toFixed(0)}KB</span>}
         </div>
       </div>
 
@@ -85,51 +80,87 @@ export function PreviewPanel({
             <RotateCcw size={14} />
           </button>
         </div>
-        <select
-          value={deviceIdx}
-          onChange={(e) => setDeviceIdx(Number(e.target.value))}
-          className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] text-gray-600"
-        >
-          {DEVICES.map((d, i) => (
-            <option key={d.id} value={i}>{d.label}</option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-400">{deviceW}×{deviceH}</span>
+          <select
+            value={deviceIdx}
+            onChange={(e) => setDeviceIdx(Number(e.target.value))}
+            className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] text-gray-600"
+          >
+            {DEVICES.map((d, i) => (
+              <option key={d.id} value={i}>{d.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* Preview iframe */}
-      <div className="flex-1 flex items-center justify-center overflow-hidden bg-gray-100 p-2">
+      {/* Preview iframe - scaled to fit panel while maintaining device aspect ratio */}
+      <div className="flex-1 flex items-center justify-center overflow-hidden bg-gray-100 p-3">
         {versionId ? (
-          isLandscape ? (
-            // Landscape: rotate the iframe 90 degrees
-            <div className="relative" style={{ width: '100%', height: '100%' }}>
-              <iframe
-                key={`${versionId}-${isLandscape}-${deviceIdx}-${replayKey}`}
-                src={`${previewUrl}?token=${token}`}
-                sandbox="allow-scripts"
-                className="absolute border-0"
-                style={{
-                  width: '100%',
-                  height: '56.25%',
-                  top: '50%',
-                  left: '0',
-                  transform: 'translateY(-50%)',
-                }}
-              />
-            </div>
-          ) : (
-            // Portrait: normal full height
-            <iframe
-              key={`${versionId}-${isLandscape}-${deviceIdx}-${replayKey}`}
-              src={`${previewUrl}?token=${token}`}
-              sandbox="allow-scripts"
-              className="w-full h-full border-0"
-            />
-          )
+          <DeviceFrame
+            width={deviceW}
+            height={deviceH}
+            src={`${previewUrl}?token=${token}`}
+            frameKey={`${versionId}-${isLandscape}-${deviceIdx}-${replayKey}`}
+          />
         ) : (
-          <div className="flex h-full items-center justify-center">
-            <p className="text-sm text-gray-400">生成后即可预览</p>
-          </div>
+          <p className="text-sm text-gray-400">生成后即可预览</p>
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Device frame that renders an iframe at native device size,
+ * then scales it down to fit the available container.
+ */
+function DeviceFrame({
+  width,
+  height,
+  src,
+  frameKey,
+}: {
+  width: number;
+  height: number;
+  src: string;
+  frameKey: string;
+}) {
+  // Use a container ref to calculate scale
+  const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
+
+  const scale = containerSize.w > 0
+    ? Math.min(containerSize.w / width, containerSize.h / height, 1)
+    : 0.5;
+
+  return (
+    <div
+      ref={(el) => {
+        if (el && (containerSize.w !== el.clientWidth || containerSize.h !== el.clientHeight)) {
+          setContainerSize({ w: el.clientWidth, h: el.clientHeight });
+        }
+      }}
+      className="relative w-full h-full flex items-center justify-center"
+    >
+      <div
+        className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg"
+        style={{
+          width: width * scale,
+          height: height * scale,
+        }}
+      >
+        <iframe
+          key={frameKey}
+          src={src}
+          sandbox="allow-scripts"
+          className="border-0"
+          style={{
+            width,
+            height,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+          }}
+        />
       </div>
     </div>
   );
