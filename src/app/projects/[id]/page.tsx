@@ -83,7 +83,7 @@ export default function ProjectWorkbenchPage() {
     <ProtectedRoute>
       <div className="flex h-screen flex-col">
         {/* Header */}
-        <header className="flex items-center justify-between clay-gradient-blue clay-shadow-sm px-5 py-3 flex-shrink-0">
+        <header className="flex items-center justify-between clay-gradient-blue border-b border-clay-blue-50/50 px-5 py-3 flex-shrink-0 relative z-10">
           <div className="flex items-center gap-3 min-w-0">
             <button onClick={() => router.push('/dashboard')} className="text-clay-blue-400 hover:text-clay-blue-300 clay-transition flex-shrink-0">
               <ArrowLeft size={18} />
@@ -155,7 +155,7 @@ export default function ProjectWorkbenchPage() {
         </div>
 
         {/* Bottom bar */}
-        <div className="flex items-center justify-end gap-3 clay-gradient-blue clay-shadow-sm px-5 py-3 flex-shrink-0">
+        <div className="flex items-center justify-end gap-3 clay-gradient-blue border-t border-clay-blue-50/50 px-5 py-3 flex-shrink-0 relative z-10">
           {currentVersionId && (
             <a
               href={`/api/projects/${projectId}/preview/${currentVersionId}?token=${token}`}
