@@ -39,13 +39,13 @@ export function DimensionConfig({
 }: DimensionConfigProps) {
   return (
     <Card className="p-6">
-      <h3 className="mb-4 font-semibold text-gray-900">变体维度</h3>
+      <h3 className="mb-4 font-semibold text-clay-text">变体维度</h3>
       {configLoading ? (
-        <div className="py-4 text-center text-sm text-gray-400">加载中...</div>
+        <div className="py-4 text-center text-sm text-clay-muted">加载中...</div>
       ) : (
         <div className="space-y-4">
           {rawDimensions.length === 0 && (
-            <p className="text-sm text-gray-400">还没有变体素材，点击下方按钮上传</p>
+            <p className="text-sm text-clay-muted">还没有变体素材，点击下方按钮上传</p>
           )}
           {rawDimensions.map((d) => {
             const override = dimensionOverrides[d.name];
@@ -61,7 +61,7 @@ export function DimensionConfig({
                     onChange={(e) => onToggleDimension(d.name, e.target.checked)}
                     className="rounded"
                   />
-                  <span className="text-sm text-gray-600">{d.label} ({selectedIds.length}张)</span>
+                  <span className="text-sm text-clay-text/70">{d.label} ({selectedIds.length}张)</span>
                 </label>
                 <div className="flex gap-2 flex-wrap">
                   {d.assets.map((a) => {
@@ -70,20 +70,20 @@ export function DimensionConfig({
                       <div
                         key={a.id}
                         onClick={() => isEnabled && onToggleAsset(d.name, a.id)}
-                        className={`h-12 w-12 overflow-hidden rounded border-2 bg-gray-100 cursor-pointer transition-all ${
-                          isSelected && isEnabled ? 'border-blue-400 ring-1 ring-blue-200' : 'border-gray-200 opacity-40'
+                        className={`h-12 w-12 overflow-hidden rounded border-2 bg-clay-bg cursor-pointer transition-all ${
+                          isSelected && isEnabled ? 'border-blue-400 ring-1 ring-blue-200' : 'border-clay-blue-50 opacity-40'
                         }`}
                       >
                         {a.thumbnailUrl ? (
                           <img src={`${a.thumbnailUrl}?token=${token}`} alt="asset" className="h-full w-full object-cover" />
                         ) : (
-                          <div className="flex h-full items-center justify-center text-xs text-gray-400">?</div>
+                          <div className="flex h-full items-center justify-center text-xs text-clay-muted">?</div>
                         )}
                       </div>
                     );
                   })}
                   {/* Per-dimension upload */}
-                  <label className={`h-12 w-12 flex items-center justify-center rounded border-2 border-dashed border-gray-300 bg-white cursor-pointer hover:border-blue-400 hover:text-blue-600 text-gray-400 text-lg ${!isEnabled ? 'pointer-events-none' : ''}`}>
+                  <label className={`h-12 w-12 flex items-center justify-center rounded border-2 border-dashed border-clay-blue-100/50 clay-gradient-surface cursor-pointer hover:border-blue-400 hover:text-clay-blue-400 text-clay-muted text-lg ${!isEnabled ? 'pointer-events-none' : ''}`}>
                     +
                     <input
                       type="file"
@@ -113,7 +113,7 @@ export function DimensionConfig({
             );
           })}
 
-          <div className="mt-4 text-lg font-semibold text-blue-600">
+          <div className="mt-4 text-lg font-semibold text-clay-blue-400">
             {enabledDimensions.length > 0
               ? enabledDimensions.map((d) => d.assets.length).join(' × ') + ' = '
               : ''}
@@ -149,24 +149,24 @@ function VariantUploadZone({ projectId, token }: { projectId: string; token: str
   };
 
   return (
-    <div className="mt-4 pt-4 border-t border-gray-100">
+    <div className="mt-4 pt-4 border-t border-clay-blue-50/20">
       <div
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
         className={`relative rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
-          isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+          isDragging ? 'border-blue-400 bg-blue-50' : 'border-clay-blue-100 hover:border-gray-400'
         }`}
       >
         {uploading ? (
           <div className="flex items-center justify-center gap-2">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-            <span className="text-sm text-gray-500">上传中...</span>
+            <span className="text-sm text-clay-text/60">上传中...</span>
           </div>
         ) : (
           <>
-            <p className="text-sm text-gray-500">拖拽变体素材到这里，或点击上传</p>
-            <p className="mt-1 text-xs text-gray-400">根据文件名自动归入维度（背景/弹窗/按钮）</p>
+            <p className="text-sm text-clay-text/60">拖拽变体素材到这里，或点击上传</p>
+            <p className="mt-1 text-xs text-clay-muted">根据文件名自动归入维度（背景/弹窗/按钮）</p>
             <input
               type="file"
               multiple

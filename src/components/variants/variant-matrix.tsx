@@ -27,7 +27,7 @@ export function VariantMatrix({ variants, onPreview }: VariantMatrixProps) {
 
   return (
     <Card className="p-6">
-      <h3 className="mb-4 font-semibold text-gray-900">变体矩阵</h3>
+      <h3 className="mb-4 font-semibold text-clay-text">变体矩阵</h3>
       <div className="grid grid-cols-6 gap-3">
         {variants.map((v) => (
           <div
@@ -35,12 +35,12 @@ export function VariantMatrix({ variants, onPreview }: VariantMatrixProps) {
             onClick={() => onPreview(v.id)}
             className={`cursor-pointer rounded-lg border-2 p-2 text-center hover:shadow-md transition-shadow ${gradeColor(v.validationGrade)}`}
           >
-            <p className="truncate text-xs font-medium text-gray-700">{v.name}</p>
+            <p className="truncate text-xs font-medium text-clay-text">{v.name}</p>
             <div className="flex items-center justify-center gap-1 mt-1">
               <Badge variant={v.validationGrade === 'A' || v.validationGrade === 'B' ? 'success' : 'warning'}>
                 {v.validationGrade}
               </Badge>
-              <span className="text-[10px] text-gray-400">
+              <span className="text-[10px] text-clay-muted">
                 {v.fullHtmlSize ? `${(v.fullHtmlSize / 1024).toFixed(0)}KB` : ''}
               </span>
             </div>

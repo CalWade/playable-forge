@@ -23,10 +23,10 @@ export function OutputTable({ variants, token, onPreview, onShowReport, onRetry 
 
   return (
     <Card className="p-6">
-      <h3 className="mb-4 font-semibold text-gray-900">产出管理</h3>
+      <h3 className="mb-4 font-semibold text-clay-text">产出管理</h3>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b text-left text-gray-500">
+          <tr className="border-b text-left text-clay-text/60">
             <th className="pb-2 font-medium">文件名</th>
             <th className="pb-2 font-medium">体积</th>
             <th className="pb-2 font-medium">校验</th>
@@ -35,9 +35,9 @@ export function OutputTable({ variants, token, onPreview, onShowReport, onRetry 
         </thead>
         <tbody className="divide-y">
           {variants.map((v) => (
-            <tr key={v.id} className="hover:bg-gray-50">
-              <td className="py-2 text-gray-700">{v.name}.html</td>
-              <td className="py-2 text-gray-500">{v.fullHtmlSize ? `${(v.fullHtmlSize / 1024).toFixed(0)}KB` : '-'}</td>
+            <tr key={v.id} className="hover:bg-clay-bg">
+              <td className="py-2 text-clay-text">{v.name}.html</td>
+              <td className="py-2 text-clay-text/60">{v.fullHtmlSize ? `${(v.fullHtmlSize / 1024).toFixed(0)}KB` : '-'}</td>
               <td className="py-2">
                 <span className={`text-xs px-1.5 py-0.5 rounded ${
                   v.validationGrade === 'A' ? 'bg-green-100 text-green-700' :
@@ -47,11 +47,11 @@ export function OutputTable({ variants, token, onPreview, onShowReport, onRetry 
                 }`}>{v.validationGrade || '-'}</span>
               </td>
               <td className="py-2 space-x-2">
-                <button onClick={() => onPreview(v.id)} className="text-xs text-blue-600 hover:underline">预览</button>
-                <a href={`/api/variants/${v.id}/preview?token=${token}`} download={`${v.name}.html`} className="text-xs text-blue-600 hover:underline">下载</a>
-                <button onClick={() => onShowReport(v.id)} className="text-xs text-gray-500 hover:underline">校验报告</button>
+                <button onClick={() => onPreview(v.id)} className="text-xs text-clay-blue-400 hover:text-clay-blue-300">预览</button>
+                <a href={`/api/variants/${v.id}/preview?token=${token}`} download={`${v.name}.html`} className="text-xs text-clay-blue-400 hover:text-clay-blue-300">下载</a>
+                <button onClick={() => onShowReport(v.id)} className="text-xs text-clay-text/60 hover:text-clay-blue-300">校验报告</button>
                 {(v.validationGrade === 'C' || v.validationGrade === 'D' || v.status === 'failed') && (
-                  <button onClick={() => onRetry(v.id)} className="text-xs text-orange-600 hover:underline">重试</button>
+                  <button onClick={() => onRetry(v.id)} className="text-xs text-clay-yellow-200 hover:text-clay-blue-300">重试</button>
                 )}
               </td>
             </tr>

@@ -119,10 +119,10 @@ export default function VariantsPage() {
       <div className="flex h-screen flex-col bg-clay-bg p-3 gap-3">
         <header className="rounded-clay-lg clay-gradient-surface clay-shadow mx-3 mt-3 px-6 py-4 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.push(`/projects/${projectId}`)} className="text-gray-400 hover:text-gray-600">
+            <button onClick={() => router.push(`/projects/${projectId}`)} className="text-clay-muted hover:text-clay-text/70">
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-lg font-semibold text-gray-900">变体生成</h1>
+            <h1 className="text-lg font-semibold text-clay-text">变体生成</h1>
           </div>
         </header>
 
@@ -172,7 +172,7 @@ export default function VariantsPage() {
 
             {/* Bottom bar */}
             <div className="flex items-center justify-between rounded-clay-lg clay-gradient-surface clay-shadow p-4">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm font-medium text-clay-text/50">
                 {configData?.estimatedTotalSize
                   ? `预估总体积: ${(configData.estimatedTotalSize / 1024 / 1024).toFixed(1)} MB`
                   : ''}
