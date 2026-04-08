@@ -1,11 +1,13 @@
+import { DATA_DIR } from '@/lib/constants';
 import { prisma } from '@/lib/db';
 import { withAuth } from '@/lib/auth/middleware';
+import { logActivity } from '@/lib/activity-log';
 import fs from 'fs/promises';
 import path from 'path';
 import archiver from 'archiver';
 import { createWriteStream } from 'fs';
 
-const DATA_DIR = process.env.DATA_DIR || './data';
+
 
 export const GET = withAuth(async (_request, { params, auth }) => {
   const project = await prisma.project.findFirst({
@@ -36,6 +38,12 @@ export const GET = withAuth(async (_request, { params, auth }) => {
   });
 
   const zipBuffer = await fs.readFile(zipPath);
+
+  await logActivity({
+    projectId: params.id, userId: auth.userId,
+    action: 'download',
+    description: `下载变体 ZIP`,
+  });
 
   return new Response(zipBuffer, {
     headers: {

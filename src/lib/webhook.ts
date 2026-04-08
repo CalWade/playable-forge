@@ -1,19 +1,12 @@
 import { getSettings } from '@/lib/settings';
 
-interface WebhookConfig {
-  url?: string;
-  events?: string[];
-}
-
 export async function sendWebhook(event: string, payload: Record<string, unknown>) {
   try {
     const settings = await getSettings();
-    const webhook = (settings as unknown as Record<string, unknown>).webhook as WebhookConfig | undefined;
+    if (!settings.webhook?.url) return;
+    if (settings.webhook.events && !settings.webhook.events.includes(event)) return;
 
-    if (!webhook?.url) return;
-    if (webhook.events && !webhook.events.includes(event)) return;
-
-    await fetch(webhook.url, {
+    await fetch(settings.webhook.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

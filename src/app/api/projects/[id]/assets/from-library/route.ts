@@ -1,10 +1,11 @@
+import { DATA_DIR } from '@/lib/constants';
 import { prisma } from '@/lib/db';
 import { withAuth } from '@/lib/auth/middleware';
 import { generateBase64 } from '@/lib/assets/base64';
 import fs from 'fs/promises';
 import path from 'path';
 
-const DATA_DIR = process.env.DATA_DIR || './data';
+
 
 // POST /api/projects/[id]/assets/from-library — import asset from library
 export const POST = withAuth(async (request, { params, auth }) => {

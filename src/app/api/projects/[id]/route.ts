@@ -1,9 +1,10 @@
+import { DATA_DIR } from '@/lib/constants';
 import { prisma } from '@/lib/db';
 import { withAuth } from '@/lib/auth/middleware';
 import fs from 'fs/promises';
 import path from 'path';
 
-const DATA_DIR = process.env.DATA_DIR || './data';
+
 
 export const GET = withAuth(async (_request, { params, auth }) => {
   const project = await prisma.project.findFirst({

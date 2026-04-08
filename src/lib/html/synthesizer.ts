@@ -1,8 +1,9 @@
+import { DATA_DIR } from '@/lib/constants';
 import fs from 'fs/promises';
 import path from 'path';
 import type { SlotAsset, SynthesisResult } from '@/types';
 
-const DATA_DIR = process.env.DATA_DIR || './data';
+
 
 /**
  * Synthesize full HTML by injecting base64 assets into skeleton PLACEHOLDER slots

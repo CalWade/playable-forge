@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { api } from '@/lib/api-client';
 
 interface User {
   id: string;
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     setToken(savedToken);
+    api.setToken(savedToken);
     fetch('/api/auth/me', {
       headers: { Authorization: `Bearer ${savedToken}` },
     })
@@ -64,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('token', data.token);
     setToken(data.token);
     setUser(data.user);
+    api.setToken(data.token);
   };
 
   const register = async (username: string, password: string, displayName?: string) => {
@@ -80,12 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('token', data.token);
     setToken(data.token);
     setUser(data.user);
+    api.setToken(data.token);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
+    api.setToken(null);
   };
 
   return (

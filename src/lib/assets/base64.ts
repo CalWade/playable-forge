@@ -1,7 +1,8 @@
+import { DATA_DIR } from '@/lib/constants';
 import fs from 'fs/promises';
 import path from 'path';
 
-const DATA_DIR = process.env.DATA_DIR || './data';
+
 
 /**
  * Generate base64 data URI from a file and cache it

@@ -1,3 +1,4 @@
+import { DATA_DIR } from '@/lib/constants';
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs/promises';
@@ -5,7 +6,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 
 const execFileAsync = promisify(execFile);
-const DATA_DIR = process.env.DATA_DIR || './data';
+
 
 interface ProcessResult {
   compressedPath: string;

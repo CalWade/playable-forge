@@ -1,12 +1,14 @@
+import { DATA_DIR } from '@/lib/constants';
 import { prisma } from '@/lib/db';
 import { withAuth } from '@/lib/auth/middleware';
 import { processImage, processAudio, isImage, isAudio } from '@/lib/assets/processor';
 import { generateBase64 } from '@/lib/assets/base64';
+import { logActivity } from '@/lib/activity-log';
 import { classifyAssets } from '@/lib/ai/classify';
 import path from 'path';
 import fs from 'fs/promises';
 
-const DATA_DIR = process.env.DATA_DIR || './data';
+
 
 export const POST = withAuth(async (request, { params, auth }) => {
   const projectId = params.id;
@@ -113,6 +115,13 @@ export const POST = withAuth(async (request, { params, auth }) => {
   });
   const baseSize = allInitialAssets.reduce((sum, a) => sum + (a.compressedSize || 0), 0);
   const estimatedHtmlSize = Math.ceil(baseSize * 1.37);
+
+  await logActivity({
+    projectId, userId: auth.userId,
+    action: 'upload_asset',
+    description: `上传 ${assets.length} 个素材`,
+    metadata: { fileNames: assets.map(a => a.originalName) },
+  });
 
   return Response.json({
     assets,

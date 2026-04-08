@@ -1,3 +1,4 @@
+import { DATA_DIR } from '@/lib/constants';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { withAuth } from '@/lib/auth/middleware';
@@ -7,7 +8,7 @@ import { inferFromFile } from '@/lib/assets/classifier';
 import path from 'path';
 import fs from 'fs/promises';
 
-const DATA_DIR = process.env.DATA_DIR || './data';
+
 
 // POST /api/projects/[id]/variant-assets — upload variant-only assets
 export const POST = withAuth(async (request, { params, auth }) => {
