@@ -16,13 +16,15 @@ export const POST = withAuth(async (request, { params, auth }) => {
 
   let description: string | undefined;
   let safetyClarification = false;
+  let streamPreview = false;
   try {
     const body = await request.json();
     description = body.description;
     safetyClarification = body.safetyClarification === true;
+    streamPreview = body.streamPreview === true;
   } catch { /* empty body ok */ }
 
   return createSSEResponse((sse) =>
-    runGeneratePipeline({ projectId, description, safetyClarification, sse })
+    runGeneratePipeline({ projectId, description, safetyClarification, streamPreview, sse })
   );
 });

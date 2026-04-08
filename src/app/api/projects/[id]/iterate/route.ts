@@ -17,9 +17,10 @@ export const POST = withAuth(async (request, { params, auth }) => {
   const body = await request.json();
   const userMessage = body.message;
   const safetyClarification = body.safetyClarification === true;
+  const streamPreview = body.streamPreview === true;
   if (!userMessage) return Response.json({ error: 'Message required' }, { status: 400 });
 
   return createSSEResponse((sse) =>
-    runIteratePipeline({ projectId, userMessage, safetyClarification, sse })
+    runIteratePipeline({ projectId, userMessage, safetyClarification, streamPreview, sse })
   );
 });

@@ -22,6 +22,8 @@ export default function ProjectWorkbenchPage() {
   const { token } = useAuth();
   const { mutate: globalMutate } = useSWRConfig();
   const [currentVersionId, setCurrentVersionId] = useState<string | undefined>();
+  const [streamingHtml, setStreamingHtml] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
   const { assets } = useAssets(projectId);
 
   // Compute estimated HTML size from assets
@@ -151,8 +153,9 @@ export default function ProjectWorkbenchPage() {
           <div className="flex flex-1 flex-col rounded-clay-lg clay-gradient-surface clay-shadow">
             <ChatPanel
               projectId={projectId}
-              onVersionChange={(vid) => { setCurrentVersionId(vid); refreshVersions(); }}
+              onVersionChange={(vid) => { setCurrentVersionId(vid); refreshVersions(); setStreamingHtml(''); setIsStreaming(false); }}
               onAssetChange={() => globalMutate(`/api/projects/${projectId}/assets`)}
+              onStreamingHtmlChange={(html) => { setStreamingHtml(html); setIsStreaming(html.length > 0); }}
               hasVersion={!!currentVersionId}
               estimatedSize={estimatedHtmlSize}
               isSizeWarning={isSizeWarning}
@@ -165,6 +168,8 @@ export default function ProjectWorkbenchPage() {
               validationGrade={latestVersion?.validationGrade}
               htmlSize={latestVersion?.fullHtmlSize}
               token={token || ''}
+              streamingHtml={streamingHtml}
+              isStreaming={isStreaming}
             />
           </div>
         </div>

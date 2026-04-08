@@ -85,6 +85,7 @@ interface GeneratePipelineParams {
   projectId: string;
   description?: string;
   safetyClarification?: boolean;
+  streamPreview?: boolean;
   sse: SSEWriter;
 }
 
@@ -134,6 +135,9 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
   let fullText = '';
   for await (const chunk of result.stream.textStream) {
     fullText += chunk;
+    if (params.streamPreview) {
+      sse.write('chunk', { text: chunk });
+    }
   }
 
   sse.write('debug', { type: 'generate_response', content: fullText });
@@ -216,6 +220,7 @@ interface IteratePipelineParams {
   projectId: string;
   userMessage: string;
   safetyClarification?: boolean;
+  streamPreview?: boolean;
   sse: SSEWriter;
 }
 
@@ -266,6 +271,9 @@ export async function runIteratePipeline(params: IteratePipelineParams) {
   let fullText = '';
   for await (const chunk of result.stream.textStream) {
     fullText += chunk;
+    if (params.streamPreview) {
+      sse.write('chunk', { text: chunk });
+    }
   }
 
   sse.write('debug', { type: 'iterate_response', content: fullText });

@@ -12,6 +12,7 @@ export function useSSE() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [lastEvent, setLastEvent] = useState<SSEEvent | null>(null);
   const [debugLog, setDebugLog] = useState<Array<{ type: string; content: string }>>([]);
+  const [streamingHtml, setStreamingHtml] = useState('');
   const gotCompleteOrError = useRef(false);
 
   const startStream = useCallback(
@@ -20,6 +21,7 @@ export function useSSE() {
       setIsStreaming(true);
       setLastEvent(null);
       setDebugLog([]);
+      setStreamingHtml('');
       gotCompleteOrError.current = false;
 
       try {
@@ -97,6 +99,9 @@ export function useSSE() {
                 if (currentEvent === 'debug') {
                   setDebugLog((prev) => [...prev, { type: data.type, content: data.content }]);
                 }
+                if (currentEvent === 'chunk') {
+                  setStreamingHtml((prev) => prev + (data.text as string));
+                }
               } catch {
                 // skip invalid JSON
               }
@@ -128,5 +133,5 @@ export function useSSE() {
     []
   );
 
-  return { events, isStreaming, lastEvent, debugLog, startStream };
+  return { events, isStreaming, lastEvent, debugLog, streamingHtml, startStream };
 }

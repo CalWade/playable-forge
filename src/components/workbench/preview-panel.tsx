@@ -17,6 +17,8 @@ interface PreviewPanelProps {
   validationGrade?: string;
   htmlSize?: number;
   token: string;
+  streamingHtml?: string;
+  isStreaming?: boolean;
 }
 
 export function PreviewPanel({
@@ -25,6 +27,8 @@ export function PreviewPanel({
   validationGrade,
   htmlSize,
   token,
+  streamingHtml,
+  isStreaming: isCurrentlyStreaming,
 }: PreviewPanelProps) {
   const [isLandscape, setIsLandscape] = useState(false);
   const [deviceIdx, setDeviceIdx] = useState(0);
@@ -96,7 +100,14 @@ export function PreviewPanel({
 
       {/* Preview iframe - scaled to fit panel while maintaining device aspect ratio */}
       <div className="flex-1 flex items-center justify-center overflow-hidden bg-clay-bg p-3">
-        {versionId ? (
+        {isCurrentlyStreaming && streamingHtml && streamingHtml.length > 200 ? (
+          <DeviceFrame
+            width={deviceW}
+            height={deviceH}
+            srcdoc={streamingHtml}
+            frameKey={`streaming-${isLandscape}-${deviceIdx}`}
+          />
+        ) : versionId ? (
           <DeviceFrame
             width={deviceW}
             height={deviceH}
@@ -119,11 +130,13 @@ function DeviceFrame({
   width,
   height,
   src,
+  srcdoc,
   frameKey,
 }: {
   width: number;
   height: number;
-  src: string;
+  src?: string;
+  srcdoc?: string;
   frameKey: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -155,7 +168,8 @@ function DeviceFrame({
       >
         <iframe
           key={frameKey}
-          src={src}
+          src={srcdoc ? undefined : src}
+          srcDoc={srcdoc || undefined}
           sandbox="allow-scripts"
           className="border-0"
           style={{

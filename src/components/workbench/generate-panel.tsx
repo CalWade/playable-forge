@@ -5,6 +5,8 @@ interface GeneratePanelProps {
   onDescriptionChange: (value: string) => void;
   safetyClarification: boolean;
   onSafetyClarificationChange: (value: boolean) => void;
+  streamPreview: boolean;
+  onStreamPreviewChange: (value: boolean) => void;
   onGenerate: () => void;
   isStreaming: boolean;
   estimatedSize?: number;
@@ -12,7 +14,8 @@ interface GeneratePanelProps {
 }
 
 export function GeneratePanel({
-  description, onDescriptionChange, safetyClarification, onSafetyClarificationChange, onGenerate, isStreaming,
+  description, onDescriptionChange, safetyClarification, onSafetyClarificationChange,
+  streamPreview, onStreamPreviewChange, onGenerate, isStreaming,
   estimatedSize, isSizeWarning,
 }: GeneratePanelProps) {
   return (
@@ -33,6 +36,15 @@ export function GeneratePanel({
           className="rounded-lg accent-clay-blue-400"
         />
         添加安全声明（适用于游戏/博彩类广告素材）
+      </label>
+      <label className="mt-2 flex items-center gap-2 text-xs font-semibold text-clay-text/50 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={streamPreview}
+          onChange={(e) => onStreamPreviewChange(e.target.checked)}
+          className="rounded-lg accent-clay-blue-400"
+        />
+        实时预览（生成时逐步渲染到预览窗口）
       </label>
       <div className="flex items-center gap-2 mt-4">
         <button
