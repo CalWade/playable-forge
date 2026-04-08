@@ -51,9 +51,10 @@ interface AssetCardProps {
   projectId: string;
   onUpdate: () => void;
   token: string;
+  onSaveToLibrary?: (assetId: string) => void;
 }
 
-export function AssetCard({ asset, projectId, onUpdate, token }: AssetCardProps) {
+export function AssetCard({ asset, projectId, onUpdate, token, onSaveToLibrary }: AssetCardProps) {
 
   const updateAsset = async (data: Record<string, unknown>) => {
     try {
@@ -125,6 +126,14 @@ export function AssetCard({ asset, projectId, onUpdate, token }: AssetCardProps)
           onChange={(v) => updateAsset({ variantRole: v })}
           className="w-full text-[10px]"
         />
+        {onSaveToLibrary && (
+          <button
+            onClick={() => onSaveToLibrary(asset.id)}
+            className="w-full text-[10px] font-semibold text-clay-blue-400 hover:text-clay-blue-300 clay-transition py-0.5"
+          >
+            ⭐ 收藏到素材库
+          </button>
+        )}
       </div>
     </div>
   );

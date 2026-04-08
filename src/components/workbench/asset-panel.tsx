@@ -1,9 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { UploadZone } from './upload-zone';
 import { AssetCard } from './asset-card';
 import { useAssets } from '@/hooks/use-assets';
 import { useAuth } from '@/components/auth-provider';
+import { LibrarySelectModal } from '@/components/library/library-select-modal';
+import { toast } from '@/components/ui/toast';
+import { FolderOpen } from 'lucide-react';
 
 interface AssetPanelProps {
   projectId: string;
@@ -12,6 +16,7 @@ interface AssetPanelProps {
 export function AssetPanel({ projectId }: AssetPanelProps) {
   const { assets, isLoading, refresh } = useAssets(projectId);
   const { token } = useAuth();
+  const [showLibrary, setShowLibrary] = useState(false);
 
   const totalSize = assets
     .filter((a: { variantRole: string }) => a.variantRole !== 'excluded')
@@ -25,6 +30,30 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
   const isSizeWarning = estimatedHtml > MAX_SIZE * 0.8;
   const isSizeError = estimatedHtml > MAX_SIZE;
 
+  const handleSaveToLibrary = async (assetId: string) => {
+    try {
+      const res = await fetch('/api/library', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assetId, projectId }),
+      });
+      if (res.ok) toast('已收藏到素材库', 'success');
+      else toast('收藏失败', 'error');
+    } catch { toast('收藏失败', 'error'); }
+  };
+
+  const handleImportFromLibrary = async (libraryAssetId: string) => {
+    try {
+      const res = await fetch(`/api/projects/${projectId}/assets/from-library`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ libraryAssetId }),
+      });
+      if (res.ok) { refresh(); toast('已从素材库导入', 'success'); }
+      else toast('导入失败', 'error');
+    } catch { toast('导入失败', 'error'); }
+  };
+
   return (
     <div className="flex h-full flex-col">
       <div className="px-4 py-3">
@@ -33,6 +62,12 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
 
       <div className="p-3">
         <UploadZone projectId={projectId} onUploadComplete={refresh} />
+        <button
+          onClick={() => setShowLibrary(true)}
+          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-clay clay-gradient-blue clay-shadow-sm px-3 py-2 text-xs font-bold text-clay-blue-400 hover:clay-shadow hover:-translate-y-0.5 clay-transition"
+        >
+          <FolderOpen size={12} /> 从素材库选择
+        </button>
       </div>
 
       {/* Size estimate */}
@@ -80,11 +115,19 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
                 projectId={projectId}
                 onUpdate={refresh}
                 token={token || ''}
+                onSaveToLibrary={handleSaveToLibrary}
               />
             ))}
           </div>
         )}
       </div>
+
+      <LibrarySelectModal
+        open={showLibrary}
+        onClose={() => setShowLibrary(false)}
+        onSelect={handleImportFromLibrary}
+        token={token || ''}
+      />
     </div>
   );
 }
