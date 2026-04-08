@@ -7,10 +7,13 @@ interface GeneratePanelProps {
   onSafetyClarificationChange: (value: boolean) => void;
   onGenerate: () => void;
   isStreaming: boolean;
+  estimatedSize?: number;
+  isSizeWarning?: boolean;
 }
 
 export function GeneratePanel({
   description, onDescriptionChange, safetyClarification, onSafetyClarificationChange, onGenerate, isStreaming,
+  estimatedSize, isSizeWarning,
 }: GeneratePanelProps) {
   return (
     <div className="flex flex-col items-center justify-center py-8 px-4">
@@ -31,13 +34,20 @@ export function GeneratePanel({
         />
         添加安全声明（适用于游戏/博彩类广告素材）
       </label>
-      <button
-        onClick={onGenerate}
-        disabled={isStreaming}
-        className="mt-4 rounded-clay-lg clay-gradient-primary text-white clay-shadow px-8 py-3 text-sm font-bold hover:clay-shadow-hover hover:-translate-y-1 active:translate-y-0 active:clay-shadow-active clay-transition disabled:opacity-50"
-      >
-        {isStreaming ? '生成中...' : '✨ 生成初稿'}
-      </button>
+      <div className="flex items-center gap-2 mt-4">
+        <button
+          onClick={onGenerate}
+          disabled={isStreaming}
+          className="rounded-clay-lg clay-gradient-primary text-white clay-shadow px-8 py-3 text-sm font-bold hover:clay-shadow-hover hover:-translate-y-1 active:translate-y-0 active:clay-shadow-active clay-transition disabled:opacity-50"
+        >
+          {isStreaming ? '生成中...' : '✨ 生成初稿'}
+        </button>
+        {isSizeWarning && (
+          <span className="text-yellow-500 text-lg" title={`预估体积: ${((estimatedSize || 0) / 1024 / 1024).toFixed(1)}MB，可能超过 5MB 限制`}>
+            ⚠️
+          </span>
+        )}
+      </div>
     </div>
   );
 }

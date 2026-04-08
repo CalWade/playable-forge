@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
 import { ArrowLeft, Settings, Lock } from 'lucide-react';
 import useSWR from 'swr';
+import { useAssets } from '@/hooks/use-assets';
 
 export default function ProjectWorkbenchPage() {
   const params = useParams();
@@ -21,6 +22,15 @@ export default function ProjectWorkbenchPage() {
   const { token } = useAuth();
   const { mutate: globalMutate } = useSWRConfig();
   const [currentVersionId, setCurrentVersionId] = useState<string | undefined>();
+  const { assets } = useAssets(projectId);
+
+  // Compute estimated HTML size from assets
+  const totalAssetSize = assets
+    .filter((a: { variantRole: string }) => a.variantRole !== 'excluded')
+    .reduce((sum: number, a: { compressedSize: number | null; fileSize: number }) => sum + (a.compressedSize || a.fileSize), 0);
+  const estimatedHtmlSize = Math.ceil(totalAssetSize * 1.37) + 50 * 1024;
+  const MAX_SIZE = 5 * 1024 * 1024;
+  const isSizeWarning = estimatedHtmlSize > MAX_SIZE * 0.8;
 
   const fetcher = async (url: string) => {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -144,6 +154,8 @@ export default function ProjectWorkbenchPage() {
               onVersionChange={(vid) => { setCurrentVersionId(vid); refreshVersions(); }}
               onAssetChange={() => globalMutate(`/api/projects/${projectId}/assets`)}
               hasVersion={!!currentVersionId}
+              estimatedSize={estimatedHtmlSize}
+              isSizeWarning={isSizeWarning}
             />
           </div>
           <div className="flex flex-shrink-0 flex-col rounded-clay-lg clay-gradient-surface clay-shadow" style={{ width: 450 }}>

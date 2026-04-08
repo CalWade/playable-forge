@@ -13,12 +13,17 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
   const { assets, isLoading, refresh } = useAssets(projectId);
   const { token } = useAuth();
 
-  const totalSize = assets.reduce(
-    (sum: number, a: { compressedSize: number | null; fileSize: number }) =>
-      sum + (a.compressedSize || a.fileSize),
-    0
-  );
-  const estimatedHtml = Math.ceil(totalSize * 1.37);
+  const totalSize = assets
+    .filter((a: { variantRole: string }) => a.variantRole !== 'excluded')
+    .reduce(
+      (sum: number, a: { compressedSize: number | null; fileSize: number }) =>
+        sum + (a.compressedSize || a.fileSize),
+      0
+    );
+  const estimatedHtml = Math.ceil(totalSize * 1.37) + 50 * 1024; // base64 expansion + skeleton overhead
+  const MAX_SIZE = 5 * 1024 * 1024;
+  const isSizeWarning = estimatedHtml > MAX_SIZE * 0.8;
+  const isSizeError = estimatedHtml > MAX_SIZE;
 
   return (
     <div className="flex h-full flex-col">
@@ -33,23 +38,26 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
       {/* Size estimate */}
       {assets.length > 0 && (
         <div className="px-3 pb-2">
-          <p className="text-[10px] font-medium text-clay-text/40">
-            预估 HTML: {(estimatedHtml / 1024).toFixed(0)} KB / 5120 KB
-          </p>
+          <div className="flex items-center justify-between">
+            <p className={`text-[10px] font-semibold ${isSizeError ? 'text-red-500' : isSizeWarning ? 'text-yellow-600' : 'text-clay-text/40'}`}>
+              预估体积: {(estimatedHtml / 1024 / 1024).toFixed(1)}MB / 5.0MB
+            </p>
+          </div>
           <div className="mt-1 h-1.5 w-full rounded-full bg-clay-bg">
             <div
               className={`h-full rounded-full transition-all ${
-                estimatedHtml > 5 * 1024 * 1024
-                  ? 'bg-red-500'
-                  : estimatedHtml > 4 * 1024 * 1024
-                  ? 'bg-yellow-500'
-                  : 'bg-green-500'
+                isSizeError ? 'bg-red-500' : isSizeWarning ? 'bg-yellow-500' : 'bg-green-500'
               }`}
               style={{
-                width: `${Math.min(100, (estimatedHtml / (5 * 1024 * 1024)) * 100)}%`,
+                width: `${Math.min(100, (estimatedHtml / MAX_SIZE) * 100)}%`,
               }}
             />
           </div>
+          {isSizeError && (
+            <p className="mt-1 text-[10px] font-semibold text-red-500">
+              ⚠️ 素材总体积可能超标，建议降低图片质量或减少素材
+            </p>
+          )}
         </div>
       )}
 

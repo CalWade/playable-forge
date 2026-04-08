@@ -17,9 +17,11 @@ interface ChatPanelProps {
   onVersionChange: (versionId: string) => void;
   onAssetChange?: () => void;
   hasVersion: boolean;
+  estimatedSize?: number;
+  isSizeWarning?: boolean;
 }
 
-export function ChatPanel({ projectId, onVersionChange, onAssetChange, hasVersion }: ChatPanelProps) {
+export function ChatPanel({ projectId, onVersionChange, onAssetChange, hasVersion, estimatedSize, isSizeWarning }: ChatPanelProps) {
   const { token } = useAuth();
   const [input, setInput] = useState('');
   const [description, setDescription] = useState('');
@@ -119,6 +121,8 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, hasVersio
                     onSafetyClarificationChange={setSafetyClarification}
                     onGenerate={handleGenerate}
                     isStreaming={isStreaming}
+                    estimatedSize={estimatedSize}
+                    isSizeWarning={isSizeWarning}
                   />
                 )}
                 <MessageList messages={allMessages} isStreaming={isStreaming} />
