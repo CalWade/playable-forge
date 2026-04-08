@@ -3,6 +3,7 @@ import { generateSkeleton, iterateSkeleton, autofixSkeleton, extractHtml } from 
 import { validate } from '@/lib/validation/engine';
 import { validateAIResponse } from '@/lib/ai/response-validator';
 import { readBase64 } from '@/lib/assets/base64';
+import { logActivity } from '@/lib/activity-log';
 import type { AssetMetadata } from '@/types';
 
 const MAX_AUTO_FIX = 3;
@@ -83,6 +84,7 @@ async function validateAndAutoFix(
 
 interface GeneratePipelineParams {
   projectId: string;
+  userId?: string;
   description?: string;
   safetyClarification?: boolean;
   streamPreview?: boolean;
@@ -212,12 +214,21 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
   }
 
   sse.write('complete', { versionId: version.id, version: newVersion, grade: validation.grade });
+
+  if (params.userId) {
+    await logActivity({
+      projectId, userId: params.userId,
+      action: 'generate',
+      description: `生成初稿 v${newVersion}，校验等级 ${validation.grade}`,
+    });
+  }
 }
 
 // ==================== Iterate Pipeline ====================
 
 interface IteratePipelineParams {
   projectId: string;
+  userId?: string;
   userMessage: string;
   safetyClarification?: boolean;
   streamPreview?: boolean;
@@ -330,4 +341,12 @@ export async function runIteratePipeline(params: IteratePipelineParams) {
   sse.write('validation', { grade: validation.grade, results: validation.results });
 
   sse.write('complete', { versionId: version.id, version: newVersion, grade: validation.grade });
+
+  if (params.userId) {
+    await logActivity({
+      projectId, userId: params.userId,
+      action: 'iterate',
+      description: `迭代生成 v${newVersion}，校验等级 ${validation.grade}`,
+    });
+  }
 }

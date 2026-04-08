@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { withAuth } from '@/lib/auth/middleware';
+import { logActivity } from '@/lib/activity-log';
 
 export const GET = withAuth(async (_request, { auth }) => {
   const projects = await prisma.project.findMany({
@@ -34,6 +35,12 @@ export const POST = withAuth(async (request, { auth }) => {
   });
 
   await prisma.projectStats.create({ data: { projectId: project.id } });
+
+  await logActivity({
+    projectId: project.id, userId: auth.userId,
+    action: 'create_project',
+    description: templateId ? `基于模板创建项目「${name}」` : `创建项目「${name}」`,
+  });
 
   // If creating from template, inject skeleton as v1
   if (templateId) {

@@ -25,6 +25,6 @@ export const POST = withAuth(async (request, { params, auth }) => {
   } catch { /* empty body ok */ }
 
   return createSSEResponse((sse) =>
-    runGeneratePipeline({ projectId, description, safetyClarification, streamPreview, sse })
+    runGeneratePipeline({ projectId, userId: auth.userId, description, safetyClarification, streamPreview, sse })
   );
 });

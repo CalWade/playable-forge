@@ -11,6 +11,7 @@ import { MessageList } from './message-list';
 import { ChatInput } from './chat-input';
 import { VersionList } from './version-list';
 import { DebugPanel } from './debug-panel';
+import { ActivityList } from './activity-list';
 
 interface ChatPanelProps {
   projectId: string;
@@ -115,7 +116,7 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
 
   return (
     <div className="flex h-full flex-col">
-      <Tabs tabs={[{ id: 'chat', label: '对话' }, { id: 'versions', label: '版本' }]}>
+      <Tabs tabs={[{ id: 'chat', label: '对话' }, { id: 'versions', label: '版本' }, { id: 'activity', label: '活动' }]}>
         {(activeTab) =>
           activeTab === 'chat' ? (
             <div className="flex flex-1 flex-col" >
@@ -146,7 +147,7 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
                 />
               )}
             </div>
-          ) : (
+          ) : activeTab === 'versions' ? (
             <VersionList
               versions={convData?.versions || []}
               token={token || ''}
@@ -154,6 +155,8 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
               onVersionChange={onVersionChange}
               onRefresh={refreshConv}
             />
+          ) : (
+            <ActivityList projectId={projectId} token={token || ''} />
           )
         }
       </Tabs>
