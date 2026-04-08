@@ -15,10 +15,11 @@ import { DebugPanel } from './debug-panel';
 interface ChatPanelProps {
   projectId: string;
   onVersionChange: (versionId: string) => void;
+  onAssetChange?: () => void;
   hasVersion: boolean;
 }
 
-export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelProps) {
+export function ChatPanel({ projectId, onVersionChange, onAssetChange, hasVersion }: ChatPanelProps) {
   const { token } = useAuth();
   const [input, setInput] = useState('');
   const [description, setDescription] = useState('');
@@ -82,7 +83,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
     setTempMessages([{ role: 'user', content: msg }, { role: 'status', content: '🛠️ 正在修改...' }]);
     await startStream(`/api/projects/${projectId}/iterate`, {
       method: 'POST',
-      body: JSON.stringify({ message: msg }),
+      body: JSON.stringify({ message: msg, safetyClarification }),
       token: token || undefined,
     });
   };
@@ -98,6 +99,7 @@ export function ChatPanel({ projectId, onVersionChange, hasVersion }: ChatPanelP
       });
       if (res.ok) {
         setTempMessages((prev) => [...prev, { role: 'system', content: `📎 已追加素材: ${file.name}` }]);
+        onAssetChange?.();
       }
     } catch { /* ignore */ }
   };

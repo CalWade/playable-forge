@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Monitor, Smartphone, RotateCcw } from 'lucide-react';
 
@@ -126,22 +126,26 @@ function DeviceFrame({
   src: string;
   frameKey: string;
 }) {
-  // Use a container ref to calculate scale
+  const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      const { width: w, height: h } = entries[0].contentRect;
+      setContainerSize((prev) => (prev.w === w && prev.h === h) ? prev : { w, h });
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const scale = containerSize.w > 0
     ? Math.min(containerSize.w / width, containerSize.h / height, 1)
     : 0.5;
 
   return (
-    <div
-      ref={(el) => {
-        if (el && (containerSize.w !== el.clientWidth || containerSize.h !== el.clientHeight)) {
-          setContainerSize({ w: el.clientWidth, h: el.clientHeight });
-        }
-      }}
-      className="relative w-full h-full flex items-center justify-center"
-    >
+    <div ref={containerRef} className="relative w-full h-full flex items-center justify-center">
       <div
         className="overflow-hidden rounded-xl border border-clay-blue-100 bg-white shadow-lg"
         style={{

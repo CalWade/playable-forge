@@ -88,6 +88,7 @@ interface IterateParams {
   currentSkeleton: string;
   userMessage: string;
   conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
+  safetyClarification?: boolean;
 }
 
 export async function iterateSkeleton(params: IterateParams) {
@@ -100,7 +101,11 @@ export async function iterateSkeleton(params: IterateParams) {
   }
 
   const systemPrompt = await getSystemPrompt(ITERATE_SYSTEM_PROMPT);
-  const userPrompt = `当前 HTML 骨架：\n\`\`\`html\n${params.currentSkeleton}\n\`\`\`\n\n修改要求：${params.userMessage}`;
+  let userPrompt = `当前 HTML 骨架：\n\`\`\`html\n${params.currentSkeleton}\n\`\`\`\n\n修改要求：${params.userMessage}`;
+
+  if (params.safetyClarification) {
+    userPrompt = `${SAFETY_CLARIFICATION}\n\n${userPrompt}`;
+  }
 
   messages.push({ role: 'user', content: userPrompt });
 

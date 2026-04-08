@@ -1,7 +1,7 @@
 'use client';
 
 interface Version {
-  id: string; version: number; validationGrade: string | null; isLocked: boolean; createdAt: string;
+  id: string; version: number; validationGrade: string | null; isLocked: boolean; parentId: string | null; createdAt: string;
 }
 
 interface VersionListProps {
@@ -23,6 +23,10 @@ export function VersionList({ versions, token, projectId, onVersionChange, onRef
                 v{v.version}
               </span>
               {v.isLocked && <span className="text-xs font-bold text-clay-purple-100">🔒 已锁定</span>}
+              {v.parentId && (() => {
+                const parent = versions.find((p) => p.id === v.parentId);
+                return parent ? <span className="text-[10px] font-medium text-clay-muted">↩ 回退自 v{parent.version}</span> : null;
+              })()}
               {v.validationGrade && (
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-clay-sm ${
                   v.validationGrade === 'A' ? 'bg-clay-green-50 text-green-700' :

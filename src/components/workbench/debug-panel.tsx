@@ -11,9 +11,16 @@ const TYPE_LABELS: Record<string, string> = {
   generate_response: '📥 生成返回',
   iterate_prompt: '📤 迭代请求',
   iterate_response: '📥 迭代返回',
-  autofix_prompt: '🔧 自修复请求',
-  autofix_response: '🔧 自修复返回',
 };
+
+function getLabel(type: string): string {
+  if (TYPE_LABELS[type]) return TYPE_LABELS[type];
+  const fixPromptMatch = type.match(/^autofix_prompt_(\d+)$/);
+  if (fixPromptMatch) return `🔧 自修复请求 (第${fixPromptMatch[1]}轮)`;
+  const fixResponseMatch = type.match(/^autofix_response_(\d+)$/);
+  if (fixResponseMatch) return `🔧 自修复返回 (第${fixResponseMatch[1]}轮)`;
+  return type;
+}
 
 export function DebugPanel({ entries }: DebugPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,7 +62,7 @@ export function DebugPanel({ entries }: DebugPanelProps) {
                     onClick={() => setExpandedIdx(expandedIdx === i ? null : i)}
                     className="w-full flex items-center justify-between px-5 py-3 hover:bg-white/5 text-left clay-transition"
                   >
-                    <span className="text-xs font-bold">{TYPE_LABELS[entry.type] || entry.type}</span>
+                    <span className="text-xs font-bold">{getLabel(entry.type)}</span>
                     <span className="text-[10px] font-medium text-white/30">
                       {entry.content.length > 100 ? `${(entry.content.length / 1024).toFixed(1)}KB` : `${entry.content.length} chars`}
                     </span>

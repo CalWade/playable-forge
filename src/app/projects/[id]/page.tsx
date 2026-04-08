@@ -8,6 +8,7 @@ import { AssetPanel } from '@/components/workbench/asset-panel';
 import { ChatPanel } from '@/components/workbench/chat-panel';
 import { PreviewPanel } from '@/components/workbench/preview-panel';
 import { Badge } from '@/components/ui/badge';
+import { useSWRConfig } from 'swr';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
 import { ArrowLeft, Settings, Lock } from 'lucide-react';
@@ -18,6 +19,7 @@ export default function ProjectWorkbenchPage() {
   const router = useRouter();
   const projectId = params.id as string;
   const { token } = useAuth();
+  const { mutate: globalMutate } = useSWRConfig();
   const [currentVersionId, setCurrentVersionId] = useState<string | undefined>();
 
   const fetcher = async (url: string) => {
@@ -140,6 +142,7 @@ export default function ProjectWorkbenchPage() {
             <ChatPanel
               projectId={projectId}
               onVersionChange={(vid) => { setCurrentVersionId(vid); refreshVersions(); }}
+              onAssetChange={() => globalMutate(`/api/projects/${projectId}/assets`)}
               hasVersion={!!currentVersionId}
             />
           </div>
