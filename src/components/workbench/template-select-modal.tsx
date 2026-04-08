@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { api } from '@/lib/api-client';
 import { X } from 'lucide-react';
 
 interface Template {
@@ -15,22 +16,20 @@ interface TemplateSelectModalProps {
   open: boolean;
   onClose: () => void;
   onSelect: (templateId: string) => void;
-  token: string;
 }
 
-export function TemplateSelectModal({ open, onClose, onSelect, token }: TemplateSelectModalProps) {
+export function TemplateSelectModal({ open, onClose, onSelect }: TemplateSelectModalProps) {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    fetch('/api/templates', { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
+    api.get<{ templates: Template[] }>('/api/templates')
       .then((data) => setTemplates(data.templates || []))
       .catch(() => setTemplates([]))
       .finally(() => setLoading(false));
-  }, [open, token]);
+  }, [open]);
 
   if (!open) return null;
 

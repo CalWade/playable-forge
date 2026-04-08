@@ -12,6 +12,8 @@ import { ChatInput } from './chat-input';
 import { VersionList } from './version-list';
 import { DebugPanel } from './debug-panel';
 import { ActivityList } from './activity-list';
+import { api } from '@/lib/api-client';
+import { swrFetcher } from '@/lib/swr-fetcher';
 
 interface ChatPanelProps {
   projectId: string;
@@ -31,17 +33,13 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
   const [streamPreview, setStreamPreview] = useState(false);
   const { isStreaming, lastEvent, debugLog, streamingHtml, startStream } = useSSE();
 
-  const fetcher = async (url: string) => {
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (!res.ok) throw new Error('Failed');
-    return res.json();
-  };
-
-  const { data: convData, mutate: refreshConv } = useSWR(
-    token ? `/api/projects/${projectId}/versions` : null, fetcher
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: convData, mutate: refreshConv } = useSWR<any>(
+    `/api/projects/${projectId}/versions`, swrFetcher
   );
-  const { data: historyData, mutate: refreshHistory } = useSWR(
-    token ? `/api/projects/${projectId}/conversations` : null, fetcher
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: historyData, mutate: refreshHistory } = useSWR<any>(
+    `/api/projects/${projectId}/conversations`, swrFetcher
   );
 
   const dbMessages = (historyData?.messages || []).map(
@@ -102,15 +100,9 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
     const formData = new FormData();
     formData.append('files', file);
     try {
-      const res = await fetch(`/api/projects/${projectId}/assets/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (res.ok) {
-        setTempMessages((prev) => [...prev, { role: 'system', content: `📎 已追加素材: ${file.name}` }]);
-        onAssetChange?.();
-      }
+      await api.upload(`/api/projects/${projectId}/assets/upload`, formData);
+      setTempMessages((prev) => [...prev, { role: 'system', content: `📎 已追加素材: ${file.name}` }]);
+      onAssetChange?.();
     } catch { /* ignore */ }
   };
 

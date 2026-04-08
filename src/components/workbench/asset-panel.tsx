@@ -7,6 +7,7 @@ import { useAssets } from '@/hooks/use-assets';
 import { useAuth } from '@/components/auth-provider';
 import { LibrarySelectModal } from '@/components/library/library-select-modal';
 import { toast } from '@/components/ui/toast';
+import { api } from '@/lib/api-client';
 import { FolderOpen } from 'lucide-react';
 
 interface AssetPanelProps {
@@ -32,25 +33,16 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
 
   const handleSaveToLibrary = async (assetId: string) => {
     try {
-      const res = await fetch('/api/library', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assetId, projectId }),
-      });
-      if (res.ok) toast('已收藏到素材库', 'success');
-      else toast('收藏失败', 'error');
+      await api.post('/api/library', { assetId, projectId });
+      toast('已收藏到素材库', 'success');
     } catch { toast('收藏失败', 'error'); }
   };
 
   const handleImportFromLibrary = async (libraryAssetId: string) => {
     try {
-      const res = await fetch(`/api/projects/${projectId}/assets/from-library`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ libraryAssetId }),
-      });
-      if (res.ok) { refresh(); toast('已从素材库导入', 'success'); }
-      else toast('导入失败', 'error');
+      await api.post(`/api/projects/${projectId}/assets/from-library`, { libraryAssetId });
+      refresh();
+      toast('已从素材库导入', 'success');
     } catch { toast('导入失败', 'error'); }
   };
 

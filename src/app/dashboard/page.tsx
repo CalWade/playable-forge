@@ -10,6 +10,8 @@ import { TemplateSelectModal } from '@/components/workbench/template-select-moda
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { Plus, ArrowRight, Copy, FileText } from 'lucide-react';
+import { api } from '@/lib/api-client';
+import { swrFetcher } from '@/lib/swr-fetcher';
 
 const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'success' | 'info' }> = {
   draft: { label: '草稿', variant: 'default' },
@@ -22,49 +24,30 @@ export default function DashboardPage() {
   const router = useRouter();
   const [showTemplateModal, setShowTemplateModal] = useState(false);
 
-  const fetcher = async (url: string) => {
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (!res.ok) throw new Error('Failed');
-    return res.json();
-  };
-
-  const { data, isLoading, mutate } = useSWR(token ? '/api/stats/dashboard' : null, fetcher);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, isLoading, mutate } = useSWR<any>('/api/stats/dashboard', swrFetcher);
 
   const handleNewProject = async () => {
-    const res = await fetch('/api/projects', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    });
-    if (res.ok) {
-      const { project } = await res.json();
+    try {
+      const { project } = await api.post<{ project: { id: string } }>('/api/projects');
       router.push(`/projects/${project.id}`);
-    }
+    } catch { /* ignore */ }
   };
 
   const handleNewFromTemplate = async (templateId: string) => {
     setShowTemplateModal(false);
-    const res = await fetch('/api/projects', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ templateId }),
-    });
-    if (res.ok) {
-      const { project } = await res.json();
+    try {
+      const { project } = await api.post<{ project: { id: string } }>('/api/projects', { templateId });
       router.push(`/projects/${project.id}`);
-    }
+    } catch { /* ignore */ }
   };
 
   const handleSaveAsTemplate = async (projectId: string, projectName: string) => {
-    const res = await fetch('/api/templates', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId, name: `${projectName}-模板` }),
-    });
-    if (res.ok) {
+    try {
+      await api.post('/api/templates', { projectId, name: `${projectName}-模板` });
       alert('已保存为模板');
-    } else {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || '保存失败');
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '保存失败');
     }
   };
 
@@ -191,7 +174,6 @@ export default function DashboardPage() {
           open={showTemplateModal}
           onClose={() => setShowTemplateModal(false)}
           onSelect={handleNewFromTemplate}
-          token={token || ''}
         />
       </div>
     </ProtectedRoute>

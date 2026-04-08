@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
 import { ArrowLeft, Download, Sparkles } from 'lucide-react';
 import useSWR from 'swr';
+import { api } from '@/lib/api-client';
+import { swrFetcher } from '@/lib/swr-fetcher';
 
 import { SkeletonPreview } from '@/components/variants/skeleton-preview';
 import { DimensionConfig } from '@/components/variants/dimension-config';
@@ -27,20 +29,17 @@ export default function VariantsPage() {
   const [validationReportId, setValidationReportId] = useState<string | null>(null);
   const [dimensionOverrides, setDimensionOverrides] = useState<Record<string, { enabled: boolean; assetIds: string[] }>>({});
 
-  const fetcher = async (url: string) => {
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (!res.ok) throw new Error('Failed');
-    return res.json();
-  };
-
-  const { data: configData, isLoading: configLoading } = useSWR(
-    token ? `/api/projects/${projectId}/variant-config` : null, fetcher
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: configData, isLoading: configLoading } = useSWR<any>(
+    `/api/projects/${projectId}/variant-config`, swrFetcher
   );
-  const { data: variantData, mutate: refreshVariants } = useSWR(
-    token ? `/api/projects/${projectId}/variants` : null, fetcher
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: variantData, mutate: refreshVariants } = useSWR<any>(
+    `/api/projects/${projectId}/variants`, swrFetcher
   );
-  const { data: versionData } = useSWR(
-    token ? `/api/projects/${projectId}/versions` : null, fetcher
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: versionData } = useSWR<any>(
+    `/api/projects/${projectId}/versions`, swrFetcher
   );
 
   const lockedVersion = versionData?.versions?.find((v: { isLocked: boolean }) => v.isLocked);
@@ -86,11 +85,7 @@ export default function VariantsPage() {
     if (!lockedVersion) { toast('请先锁定一个骨架版本', 'warning'); return; }
     setGenerating(true);
     try {
-      const res = await fetch(`/api/projects/${projectId}/variants/generate`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed');
-      const data = await res.json();
+      const data = await api.post<{ total: number }>(`/api/projects/${projectId}/variants/generate`);
       toast(`已生成 ${data.total} 个变体`, 'success');
       refreshVariants();
     } catch (err) {
@@ -103,9 +98,7 @@ export default function VariantsPage() {
   const handleUnlock = async () => {
     if (!lockedVersion) return;
     try {
-      await fetch(`/api/projects/${projectId}/versions/${lockedVersion.id}/unlock`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post(`/api/projects/${projectId}/versions/${lockedVersion.id}/unlock`);
       window.location.reload();
     } catch { /* ignore */ }
   };
@@ -156,16 +149,9 @@ export default function VariantsPage() {
               onShowReport={setValidationReportId}
               onRetry={async (variantId) => {
                 try {
-                  const res = await fetch(`/api/variants/${variantId}/retry`, {
-                    method: 'POST',
-                    headers: { Authorization: `Bearer ${token}` },
-                  });
-                  if (res.ok) {
-                    toast('重试成功', 'success');
-                    refreshVariants();
-                  } else {
-                    toast('重试失败', 'error');
-                  }
+                  await api.post(`/api/variants/${variantId}/retry`);
+                  toast('重试成功', 'success');
+                  refreshVariants();
                 } catch { toast('重试失败', 'error'); }
               }}
             />

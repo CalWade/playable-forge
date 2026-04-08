@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { SelectDropdown } from '@/components/ui/dropdown';
 import { toast } from '@/components/ui/toast';
+import { api } from '@/lib/api-client';
 
 interface Asset {
   id: string;
@@ -58,14 +59,7 @@ export function AssetCard({ asset, projectId, onUpdate, token, onSaveToLibrary }
 
   const updateAsset = async (data: Record<string, unknown>) => {
     try {
-      await fetch(`/api/projects/${projectId}/assets/${asset.id}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      await api.patch(`/api/projects/${projectId}/assets/${asset.id}`, data);
       onUpdate();
     } catch {
       toast('更新失败', 'error');

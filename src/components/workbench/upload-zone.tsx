@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useAuth } from '@/components/auth-provider';
 import { toast } from '@/components/ui/toast';
+import { api } from '@/lib/api-client';
 
 interface UploadZoneProps {
   projectId: string;
@@ -10,7 +10,6 @@ interface UploadZoneProps {
 }
 
 export function UploadZone({ projectId, onUploadComplete }: UploadZoneProps) {
-  const { token } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -21,13 +20,7 @@ export function UploadZone({ projectId, onUploadComplete }: UploadZoneProps) {
       const formData = new FormData();
       Array.from(files).forEach((f) => formData.append('files', f));
       try {
-        const res = await fetch(`/api/projects/${projectId}/assets/upload`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Upload failed');
-        const data = await res.json();
+        const data = await api.upload<{ assets: unknown[] }>(`/api/projects/${projectId}/assets/upload`, formData);
         toast(`已上传 ${data.assets.length} 个文件`, 'success');
         onUploadComplete();
       } catch (err) {
@@ -36,7 +29,7 @@ export function UploadZone({ projectId, onUploadComplete }: UploadZoneProps) {
         setUploading(false);
       }
     },
-    [projectId, token, onUploadComplete]
+    [projectId, onUploadComplete]
   );
 
   return (

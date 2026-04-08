@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { api } from '@/lib/api-client';
 import { X, Search } from 'lucide-react';
 
 interface LibraryAsset {
@@ -31,12 +32,11 @@ export function LibrarySelectModal({ open, onClose, onSelect, token }: LibrarySe
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set('search', search);
-    fetch(`/api/library?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
+    api.get<{ assets: LibraryAsset[] }>(`/api/library?${params}`)
       .then((data) => setAssets(data.assets || []))
       .catch(() => setAssets([]))
       .finally(() => setLoading(false));
-  }, [open, token, search]);
+  }, [open, search]);
 
   if (!open) return null;
 

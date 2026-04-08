@@ -1,6 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
+import { swrFetcher } from '@/lib/swr-fetcher';
 
 interface ActivityListProps {
   projectId: string;
@@ -17,16 +18,11 @@ const ACTION_ICONS: Record<string, string> = {
   download: '⬇️',
 };
 
-export function ActivityList({ projectId, token }: ActivityListProps) {
-  const fetcher = async (url: string) => {
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (!res.ok) throw new Error('Failed');
-    return res.json();
-  };
-
-  const { data, isLoading } = useSWR(
-    token ? `/api/projects/${projectId}/activity` : null,
-    fetcher
+export function ActivityList({ projectId }: ActivityListProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, isLoading } = useSWR<any>(
+    `/api/projects/${projectId}/activity`,
+    swrFetcher
   );
 
   const logs = data?.logs || [];

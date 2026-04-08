@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ComparePreviewModal } from './compare-preview-modal';
 import { Button } from '@/components/ui/button';
+import { api } from '@/lib/api-client';
 
 interface Version {
   id: string; version: number; validationGrade: string | null; fullHtmlSize: number | null; isLocked: boolean; parentId: string | null; createdAt: string;
@@ -41,10 +42,7 @@ export function VersionList({ versions, token, projectId, onVersionChange, onRef
 
   const handleAdopt = async (versionId: string) => {
     try {
-      await fetch(`/api/projects/${projectId}/versions/${versionId}/rollback`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post(`/api/projects/${projectId}/versions/${versionId}/rollback`);
       setShowCompare(false);
       setSelected(new Set());
       onRefresh();
@@ -106,9 +104,7 @@ export function VersionList({ versions, token, projectId, onVersionChange, onRef
                 <button
                   onClick={async () => {
                     try {
-                      await fetch(`/api/projects/${projectId}/versions/${v.id}/rollback`, {
-                        method: 'POST', headers: { Authorization: `Bearer ${token}` },
-                      });
+                      await api.post(`/api/projects/${projectId}/versions/${v.id}/rollback`);
                       onRefresh(); onVersionChange(v.id);
                     } catch { /* ignore */ }
                   }}

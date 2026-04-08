@@ -14,6 +14,8 @@ import { toast } from '@/components/ui/toast';
 import { ArrowLeft, Settings, Lock } from 'lucide-react';
 import useSWR from 'swr';
 import { useAssets } from '@/hooks/use-assets';
+import { api } from '@/lib/api-client';
+import { swrFetcher } from '@/lib/swr-fetcher';
 
 export default function ProjectWorkbenchPage() {
   const params = useParams();
@@ -34,20 +36,16 @@ export default function ProjectWorkbenchPage() {
   const MAX_SIZE = 5 * 1024 * 1024;
   const isSizeWarning = estimatedHtmlSize > MAX_SIZE * 0.8;
 
-  const fetcher = async (url: string) => {
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (!res.ok) throw new Error('Failed');
-    return res.json();
-  };
-
-  const { data: projectData } = useSWR(
-    token ? `/api/projects/${projectId}` : null,
-    fetcher
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: projectData } = useSWR<any>(
+    `/api/projects/${projectId}`,
+    swrFetcher
   );
 
-  const { data: versionData, mutate: refreshVersions } = useSWR(
-    token ? `/api/projects/${projectId}/versions` : null,
-    fetcher,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: versionData, mutate: refreshVersions } = useSWR<any>(
+    `/api/projects/${projectId}/versions`,
+    swrFetcher,
     { refreshInterval: 5000 }
   );
 
@@ -67,10 +65,7 @@ export default function ProjectWorkbenchPage() {
       return;
     }
     try {
-      await fetch(`/api/projects/${projectId}/versions/${currentVersionId}/lock`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post(`/api/projects/${projectId}/versions/${currentVersionId}/lock`);
       toast('骨架已锁定', 'success');
       refreshVersions();
     } catch {
@@ -84,11 +79,7 @@ export default function ProjectWorkbenchPage() {
   const handleRename = async () => {
     if (!nameInput.trim()) return;
     try {
-      await fetch(`/api/projects/${projectId}`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: nameInput.trim() }),
-      });
+      await api.patch(`/api/projects/${projectId}`, { name: nameInput.trim() });
       setEditingName(false);
     } catch { /* ignore */ }
   };

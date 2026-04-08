@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { LabeledInput as Input } from '@/components/ui/labeled-input';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { toast } from '@/components/ui/toast';
+import { api } from '@/lib/api-client';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -23,8 +24,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!token) return;
-    fetch('/api/settings', { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
+    api.get<{ settings: typeof settings }>('/api/settings')
       .then((d) => { if (d.settings) setSettings(d.settings); })
       .catch(() => {});
   }, [token]);
@@ -32,13 +32,8 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/settings', {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      });
-      if (res.ok) toast('设置已保存', 'success');
-      else throw new Error('Save failed');
+      await api.patch('/api/settings', settings);
+      toast('设置已保存', 'success');
     } catch { toast('保存失败', 'error'); }
     finally { setSaving(false); }
   };

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { api } from '@/lib/api-client';
 
 interface DimensionAsset {
   id: string;
@@ -97,12 +98,8 @@ export function DimensionConfig({
                         Array.from(files).forEach((f) => formData.append('files', f));
                         formData.append('dimensionGroup', d.name);
                         try {
-                          const res = await fetch(`/api/projects/${projectId}/variant-assets`, {
-                            method: 'POST',
-                            headers: { Authorization: `Bearer ${token}` },
-                            body: formData,
-                          });
-                          if (res.ok) window.location.reload();
+                          await api.upload(`/api/projects/${projectId}/variant-assets`, formData);
+                          window.location.reload();
                         } catch { /* ignore */ }
                         e.target.value = '';
                       }}
@@ -121,14 +118,14 @@ export function DimensionConfig({
           </div>
 
           {/* Auto-classify upload with drag & drop */}
-          <VariantUploadZone projectId={projectId} token={token} />
+          <VariantUploadZone projectId={projectId} />
         </div>
       )}
     </Card>
   );
 }
 
-function VariantUploadZone({ projectId, token }: { projectId: string; token: string }) {
+function VariantUploadZone({ projectId }: { projectId: string }) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -138,12 +135,8 @@ function VariantUploadZone({ projectId, token }: { projectId: string; token: str
     const formData = new FormData();
     Array.from(files).forEach((f) => formData.append('files', f));
     try {
-      const res = await fetch(`/api/projects/${projectId}/variant-assets`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (res.ok) window.location.reload();
+      await api.upload(`/api/projects/${projectId}/variant-assets`, formData);
+      window.location.reload();
     } catch { /* ignore */ }
     setUploading(false);
   };
