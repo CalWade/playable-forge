@@ -57,10 +57,11 @@ export async function getSettings(): Promise<AppSettings> {
 
 export async function saveSettings(settings: Partial<AppSettings>): Promise<AppSettings> {
   const current = await getSettings();
-  const merged = {
+  const merged: AppSettings = {
     ai: { ...current.ai, ...settings.ai },
     validation: { ...current.validation, ...settings.validation },
     compression: { ...current.compression, ...settings.compression },
+    webhook: settings.webhook !== undefined ? settings.webhook : current.webhook,
   };
   await fs.mkdir(path.dirname(SETTINGS_PATH), { recursive: true });
   await fs.writeFile(SETTINGS_PATH, JSON.stringify(merged, null, 2));

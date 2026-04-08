@@ -1,13 +1,16 @@
 import { createOpenAI } from '@ai-sdk/openai';
+import { getSettings } from '@/lib/settings';
 
-export function getAIProvider() {
+export async function getAIProvider() {
+  const settings = await getSettings();
   return createOpenAI({
-    baseURL: process.env.AI_BASE_URL || 'https://api.openai.com/v1',
-    apiKey: process.env.AI_API_KEY || '',
+    baseURL: settings.ai.baseUrl || process.env.AI_BASE_URL || 'https://api.openai.com/v1',
+    apiKey: process.env.AI_API_KEY || 'ollama',
   });
 }
 
-export function getModel(modelId?: string) {
-  const provider = getAIProvider();
-  return provider(modelId || process.env.AI_MODEL || 'gpt-4o');
+export async function getModel(modelId?: string) {
+  const settings = await getSettings();
+  const provider = await getAIProvider();
+  return provider(modelId || settings.ai.model || process.env.AI_MODEL || 'gpt-4o');
 }

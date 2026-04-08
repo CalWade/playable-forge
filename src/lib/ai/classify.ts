@@ -59,7 +59,7 @@ export async function classifyAssets(assets: AssetInfo[]): Promise<Classificatio
 
   try {
     const result = await generateText({
-      model: getModel(),
+      model: await getModel(),
       system: CLASSIFY_SYSTEM_PROMPT,
       prompt: `请对以下 ${assets.length} 个素材文件进行分类：\n\n${assetDescriptions}`,
       maxOutputTokens: 2000,

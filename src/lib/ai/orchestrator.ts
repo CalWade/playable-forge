@@ -75,7 +75,7 @@ export async function generateSkeleton(params: GenerateParams) {
   }
 
   const result = streamText({
-    model: getModel(),
+    model: await getModel(),
     system: systemPrompt,
     messages: [{ role: 'user' as const, content: userContent }],
     maxOutputTokens: 16000,
@@ -110,7 +110,7 @@ export async function iterateSkeleton(params: IterateParams) {
   messages.push({ role: 'user', content: userPrompt });
 
   const result = streamText({
-    model: getModel(),
+    model: await getModel(),
     system: systemPrompt,
     messages,
     maxOutputTokens: 16000,
@@ -129,7 +129,7 @@ export async function autofixSkeleton(
     .join('\n')}\n\n当前 HTML：\n\`\`\`html\n${skeleton}\n\`\`\`\n\n请仅返回修复后的完整 HTML 代码。`;
 
   const result = await generateText({
-    model: getModel(),
+    model: await getModel(),
     system: systemPrompt,
     prompt,
     maxOutputTokens: 16000,
