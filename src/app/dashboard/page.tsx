@@ -1,13 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { TemplateSelectModal } from '@/components/workbench/template-select-modal';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { Plus, ArrowRight } from 'lucide-react';
+import { Plus, ArrowRight, Copy, FileText } from 'lucide-react';
 
 const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'success' | 'info' }> = {
   draft: { label: '草稿', variant: 'default' },
@@ -18,6 +20,7 @@ const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'success'
 export default function DashboardPage() {
   const { token, user, logout } = useAuth();
   const router = useRouter();
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   const fetcher = async (url: string) => {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -25,7 +28,7 @@ export default function DashboardPage() {
     return res.json();
   };
 
-  const { data, isLoading } = useSWR(token ? '/api/stats/dashboard' : null, fetcher);
+  const { data, isLoading, mutate } = useSWR(token ? '/api/stats/dashboard' : null, fetcher);
 
   const handleNewProject = async () => {
     const res = await fetch('/api/projects', {
@@ -35,6 +38,33 @@ export default function DashboardPage() {
     if (res.ok) {
       const { project } = await res.json();
       router.push(`/projects/${project.id}`);
+    }
+  };
+
+  const handleNewFromTemplate = async (templateId: string) => {
+    setShowTemplateModal(false);
+    const res = await fetch('/api/projects', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ templateId }),
+    });
+    if (res.ok) {
+      const { project } = await res.json();
+      router.push(`/projects/${project.id}`);
+    }
+  };
+
+  const handleSaveAsTemplate = async (projectId: string, projectName: string) => {
+    const res = await fetch('/api/templates', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectId, name: `${projectName}-模板` }),
+    });
+    if (res.ok) {
+      alert('已保存为模板');
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || '保存失败');
     }
   };
 
@@ -73,6 +103,9 @@ export default function DashboardPage() {
             <Button onClick={handleNewProject} size="lg">
               <Plus size={16} className="mr-1" /> 新建项目
             </Button>
+            <Button onClick={() => setShowTemplateModal(true)} size="lg" variant="outline">
+              <FileText size={16} className="mr-1" /> 从模板新建
+            </Button>
           </div>
 
           {/* Project list */}
@@ -101,6 +134,16 @@ export default function DashboardPage() {
                         </Badge>
                       </div>
                       <div className="flex items-center gap-6">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSaveAsTemplate(p.id, p.name);
+                          }}
+                          className="text-xs font-bold text-clay-muted hover:text-clay-blue-400 clay-transition"
+                          title="存为模板"
+                        >
+                          <Copy size={14} />
+                        </button>
                         <span className="text-sm font-semibold text-clay-text/50">{p.variantCount}</span>
                         <span className="text-sm font-medium text-clay-text/40">
                           {new Date(p.createdAt).toLocaleDateString('zh-CN')}
@@ -143,6 +186,13 @@ export default function DashboardPage() {
             </Card>
           )}
         </main>
+
+        <TemplateSelectModal
+          open={showTemplateModal}
+          onClose={() => setShowTemplateModal(false)}
+          onSelect={handleNewFromTemplate}
+          token={token || ''}
+        />
       </div>
     </ProtectedRoute>
   );
