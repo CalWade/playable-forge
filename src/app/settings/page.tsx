@@ -18,6 +18,7 @@ export default function SettingsPage() {
     ai: { baseUrl: '', model: '', maxTokens: 16000, systemPromptOverride: '' },
     validation: { maxFileSize: 5242880, warnFileSize: 4194304, platform: 'applovin' },
     compression: { imageQuality: 80, maxImageWidth: 1920, audioTargetKbps: 128 },
+    webhook: { url: '', events: ['generate_complete', 'batch_complete'] as string[] },
   });
 
   useEffect(() => {
@@ -101,6 +102,54 @@ export default function SettingsPage() {
                 className="w-full rounded-clay clay-inset bg-gradient-to-br from-[#e8f4ff] to-[#dceefb] px-4 py-3 text-sm font-medium font-mono text-clay-text placeholder:text-clay-muted focus:outline-none focus:clay-inset-focus resize-y clay-transition"
                 rows={10}
               />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><h3 className="font-bold text-clay-text">Webhook 通知</h3></CardHeader>
+            <CardContent className="space-y-4">
+              <Input label="Webhook URL（飞书/钉钉/Slack）" value={settings.webhook?.url || ''}
+                placeholder="https://hooks.slack.com/..."
+                onChange={(e) => setSettings({ ...settings, webhook: { ...settings.webhook, url: e.target.value } })} />
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-clay-text/50">触发事件</p>
+                {[
+                  { id: 'generate_complete', label: '生成完成' },
+                  { id: 'batch_complete', label: '批量变体完成' },
+                ].map((evt) => (
+                  <label key={evt.id} className="flex items-center gap-2 text-xs text-clay-text/70 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.webhook?.events?.includes(evt.id) ?? true}
+                      onChange={(e) => {
+                        const events = settings.webhook?.events || [];
+                        const next = e.target.checked
+                          ? [...events, evt.id]
+                          : events.filter((x) => x !== evt.id);
+                        setSettings({ ...settings, webhook: { ...settings.webhook, events: next } });
+                      }}
+                      className="rounded accent-clay-blue-400"
+                    />
+                    {evt.label}
+                  </label>
+                ))}
+              </div>
+              <Button
+                variant="outline" size="sm"
+                onClick={async () => {
+                  if (!settings.webhook?.url) { toast('请先填写 Webhook URL', 'warning'); return; }
+                  try {
+                    await fetch(settings.webhook.url, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ event: 'test', message: 'PlayableForge Webhook 测试', timestamp: new Date().toISOString() }),
+                    });
+                    toast('测试消息已发送', 'success');
+                  } catch { toast('发送失败，请检查 URL', 'error'); }
+                }}
+              >
+                🔔 发送测试
+              </Button>
             </CardContent>
           </Card>
 

@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/db';
 import { withAuth } from '@/lib/auth/middleware';
 import { generateCombinations, batchGenerate } from '@/lib/variants/generator';
+import { logActivity } from '@/lib/activity-log';
+import { sendWebhook } from '@/lib/webhook';
 
 // POST /api/projects/[id]/variants/generate
 export const POST = withAuth(async (_request, { params, auth }) => {
@@ -95,6 +97,18 @@ export const POST = withAuth(async (_request, { params, auth }) => {
       totalVariants: variants.length,
       passedVariants: variants.filter((v) => v.validationGrade === 'A' || v.validationGrade === 'B').length,
     },
+  });
+
+  const passed = variants.filter((v) => v.validationGrade === 'A' || v.validationGrade === 'B').length;
+
+  await logActivity({
+    projectId, userId: auth.userId,
+    action: 'batch_generate',
+    description: `批量生成 ${variants.length} 个变体，${passed} 个通过`,
+  });
+
+  await sendWebhook('batch_complete', {
+    projectId, total: variants.length, passed,
   });
 
   return Response.json({

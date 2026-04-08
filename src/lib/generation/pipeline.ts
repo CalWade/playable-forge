@@ -4,6 +4,7 @@ import { validate } from '@/lib/validation/engine';
 import { validateAIResponse } from '@/lib/ai/response-validator';
 import { readBase64 } from '@/lib/assets/base64';
 import { logActivity } from '@/lib/activity-log';
+import { sendWebhook } from '@/lib/webhook';
 import type { AssetMetadata } from '@/types';
 
 const MAX_AUTO_FIX = 3;
@@ -222,6 +223,10 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
       description: `生成初稿 v${newVersion}，校验等级 ${validation.grade}`,
     });
   }
+
+  await sendWebhook('generate_complete', {
+    projectId, version: newVersion, grade: validation.grade,
+  });
 }
 
 // ==================== Iterate Pipeline ====================
