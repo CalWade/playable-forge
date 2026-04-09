@@ -12,5 +12,8 @@ export async function getAIProvider() {
 export async function getModel(modelId?: string) {
   const settings = await getSettings();
   const provider = await getAIProvider();
-  return provider(modelId || settings.ai.model || process.env.AI_MODEL || 'gpt-4o');
+  const model = modelId || settings.ai.model || process.env.AI_MODEL || 'gpt-4o';
+  // Use .chat() to force /v1/chat/completions endpoint.
+  // Default provider(model) uses /responses which third-party APIs don't support.
+  return provider.chat(model);
 }
