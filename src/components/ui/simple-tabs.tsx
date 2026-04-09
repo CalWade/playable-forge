@@ -14,8 +14,8 @@ export function SimpleTabs({ tabs, defaultTab, children, className }: SimpleTabs
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id || '');
 
   return (
-    <div className={cn('flex flex-col', className)}>
-      <div className="flex gap-1 p-2">
+    <div className={cn('flex flex-col h-full', className)}>
+      <div className="flex gap-1 p-2 flex-shrink-0">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -31,7 +31,7 @@ export function SimpleTabs({ tabs, defaultTab, children, className }: SimpleTabs
           </button>
         ))}
       </div>
-      <div className="flex-1">{children(activeTab)}</div>
+      <div className="flex-1 min-h-0 overflow-hidden">{children(activeTab)}</div>
     </div>
   );
 }

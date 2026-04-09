@@ -111,44 +111,67 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
       <Tabs tabs={[{ id: 'chat', label: '对话' }, { id: 'versions', label: '版本' }, { id: 'activity', label: '活动' }]}>
         {(activeTab) =>
           activeTab === 'chat' ? (
-            <div className="flex flex-1 flex-col" >
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {!hasVersion && (
-                  <GeneratePanel
-                    description={description}
-                    onDescriptionChange={setDescription}
-                    safetyClarification={safetyClarification}
-                    onSafetyClarificationChange={setSafetyClarification}
-                    streamPreview={streamPreview}
-                    onStreamPreviewChange={setStreamPreview}
-                    onGenerate={handleGenerate}
-                    isStreaming={isStreaming}
-                    estimatedSize={estimatedSize}
-                    isSizeWarning={isSizeWarning}
-                  />
-                )}
-                <MessageList messages={allMessages} isStreaming={isStreaming} />
-              </div>
-              {hasVersion && (
-                <ChatInput
-                  input={input}
-                  onInputChange={setInput}
-                  onSend={handleSend}
-                  onAttach={handleAttach}
+            <div className="flex flex-col h-full">
+              {/* Generate panel - always visible, collapsed when version exists */}
+              <div className="flex-shrink-0">
+                <GeneratePanel
+                  description={description}
+                  onDescriptionChange={setDescription}
+                  safetyClarification={safetyClarification}
+                  onSafetyClarificationChange={setSafetyClarification}
+                  streamPreview={streamPreview}
+                  onStreamPreviewChange={setStreamPreview}
+                  onGenerate={handleGenerate}
                   isStreaming={isStreaming}
+                  estimatedSize={estimatedSize}
+                  isSizeWarning={isSizeWarning}
+                  collapsed={hasVersion}
                 />
+              </div>
+
+              {/* Message area - scrollable */}
+              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+                {allMessages.length === 0 && hasVersion ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <p className="text-3xl mb-3">💬</p>
+                    <p className="text-sm font-bold text-clay-text/40">对话迭代</p>
+                    <p className="text-xs text-clay-muted mt-1 max-w-xs">
+                      输入修改需求，AI 会根据你的描述修改 HTML 骨架。
+                      支持粘贴或附件追加素材。
+                    </p>
+                  </div>
+                ) : (
+                  <MessageList messages={allMessages} isStreaming={isStreaming} />
+                )}
+              </div>
+
+              {/* Chat input - always visible when version exists */}
+              {hasVersion && (
+                <div className="flex-shrink-0">
+                  <ChatInput
+                    input={input}
+                    onInputChange={setInput}
+                    onSend={handleSend}
+                    onAttach={handleAttach}
+                    isStreaming={isStreaming}
+                  />
+                </div>
               )}
             </div>
           ) : activeTab === 'versions' ? (
-            <VersionList
-              versions={convData?.versions || []}
-              token={token || ''}
-              projectId={projectId}
-              onVersionChange={onVersionChange}
-              onRefresh={refreshConv}
-            />
+            <div className="h-full overflow-hidden">
+              <VersionList
+                versions={convData?.versions || []}
+                token={token || ''}
+                projectId={projectId}
+                onVersionChange={onVersionChange}
+                onRefresh={refreshConv}
+              />
+            </div>
           ) : (
-            <ActivityList projectId={projectId} token={token || ''} />
+            <div className="h-full overflow-hidden">
+              <ActivityList projectId={projectId} token={token || ''} />
+            </div>
           )
         }
       </Tabs>
