@@ -7,10 +7,14 @@ interface DebugEntry { type: string; content: string; }
 interface DebugPanelProps { entries: DebugEntry[]; }
 
 const TYPE_LABELS: Record<string, string> = {
+  api_config: '🔌 API 配置',
   generate_prompt: '📤 生成请求',
   generate_response: '📥 生成返回',
+  generate_response_length: '📏 返回长度',
   iterate_prompt: '📤 迭代请求',
   iterate_response: '📥 迭代返回',
+  iterate_response_length: '📏 返回长度',
+  stream_error: '❌ 流式错误',
 };
 
 function getLabel(type: string): string {

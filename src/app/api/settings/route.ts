@@ -1,9 +1,13 @@
 import { withAuth } from '@/lib/auth/middleware';
 import { getSettings, saveSettings } from '@/lib/settings';
+import { GENERATE_SYSTEM_PROMPT } from '@/lib/ai/prompts';
 
 export const GET = withAuth(async () => {
   const settings = await getSettings();
-  return Response.json({ settings });
+  return Response.json({
+    settings,
+    defaultSystemPrompt: GENERATE_SYSTEM_PROMPT,
+  });
 });
 
 export const PATCH = withAuth(async (request) => {

@@ -21,11 +21,15 @@ export default function SettingsPage() {
     compression: { imageQuality: 80, maxImageWidth: 1920, audioTargetKbps: 128 },
     webhook: { url: '', events: ['generate_complete', 'batch_complete'] as string[] },
   });
+  const [defaultPrompt, setDefaultPrompt] = useState('');
 
   useEffect(() => {
     if (!token) return;
-    api.get<{ settings: typeof settings }>('/api/settings')
-      .then((d) => { if (d.settings) setSettings(d.settings); })
+    api.get<{ settings: typeof settings; defaultSystemPrompt?: string }>('/api/settings')
+      .then((d) => {
+        if (d.settings) setSettings(d.settings);
+        if (d.defaultSystemPrompt) setDefaultPrompt(d.defaultSystemPrompt);
+      })
       .catch(() => {});
   }, [token]);
 
@@ -89,14 +93,23 @@ export default function SettingsPage() {
           <Card>
             <CardHeader><h3 className="font-bold text-clay-text">System Prompt</h3></CardHeader>
             <CardContent>
-              <p className="mb-2 text-xs font-medium text-clay-text/40">自定义 AI 生成时的系统指令（留空则使用默认 prompt）</p>
+              <p className="mb-2 text-xs font-medium text-clay-text/40">
+                AI 生成时的系统指令。编辑后保存即生效，清空内容恢复默认。
+              </p>
               <textarea
-                value={settings.ai.systemPromptOverride || ''}
+                value={settings.ai.systemPromptOverride || defaultPrompt}
                 onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, systemPromptOverride: e.target.value } })}
-                placeholder="留空使用默认 System Prompt..."
                 className="w-full rounded-clay clay-inset bg-gradient-to-br from-[#e8f4ff] to-[#dceefb] px-4 py-3 text-sm font-medium font-mono text-clay-text placeholder:text-clay-muted focus:outline-none focus:clay-inset-focus resize-y clay-transition"
-                rows={10}
+                rows={12}
               />
+              {settings.ai.systemPromptOverride && (
+                <button
+                  onClick={() => setSettings({ ...settings, ai: { ...settings.ai, systemPromptOverride: '' } })}
+                  className="mt-2 text-xs font-bold text-clay-blue-400 hover:text-clay-blue-300 clay-transition"
+                >
+                  ↩ 恢复默认 Prompt
+                </button>
+              )}
             </CardContent>
           </Card>
 

@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import { iterateSkeleton, extractHtml } from '@/lib/ai/orchestrator';
 import { validateAIResponse } from '@/lib/ai/response-validator';
 import { logActivity } from '@/lib/activity-log';
+import { getSettings } from '@/lib/settings';
 import { validateAndAutoFix } from './validate-and-fix';
 import type { IteratePipelineParams } from './types';
 
@@ -48,6 +49,12 @@ export async function runIteratePipeline(params: IteratePipelineParams) {
   });
 
   sse.write('debug', { type: 'iterate_prompt', content: `[System Prompt]\n${result.systemPrompt}\n\n[User Prompt]\n${result.prompt}` });
+
+  // Emit API config for debugging
+  const settings = await getSettings();
+  const apiUrl = settings.ai.baseUrl || process.env.AI_BASE_URL || 'https://api.openai.com/v1';
+  const modelName = settings.ai.model || process.env.AI_MODEL || 'gpt-4o';
+  sse.write('debug', { type: 'api_config', content: `API: ${apiUrl}\nModel: ${modelName}` });
 
   let fullText = '';
   try {

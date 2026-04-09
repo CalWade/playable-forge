@@ -4,6 +4,7 @@ import { validateAIResponse } from '@/lib/ai/response-validator';
 import { readBase64 } from '@/lib/assets/base64';
 import { logActivity } from '@/lib/activity-log';
 import { sendWebhook } from '@/lib/webhook';
+import { getSettings } from '@/lib/settings';
 import { validateAndAutoFix } from './validate-and-fix';
 import type { AssetMetadata } from '@/types';
 import type { GeneratePipelineParams } from './types';
@@ -48,6 +49,12 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
   });
 
   sse.write('debug', { type: 'generate_prompt', content: `[System Prompt]\n${result.systemPrompt}\n\n[User Prompt]\n${result.prompt}` });
+
+  // Emit API config for debugging
+  const settings = await getSettings();
+  const apiUrl = settings.ai.baseUrl || process.env.AI_BASE_URL || 'https://api.openai.com/v1';
+  const modelName = settings.ai.model || process.env.AI_MODEL || 'gpt-4o';
+  sse.write('debug', { type: 'api_config', content: `API: ${apiUrl}\nModel: ${modelName}` });
 
   let fullText = '';
   try {
