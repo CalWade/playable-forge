@@ -8,8 +8,6 @@ interface GeneratePanelProps {
   onDescriptionChange: (value: string) => void;
   safetyClarification: boolean;
   onSafetyClarificationChange: (value: boolean) => void;
-  streamPreview: boolean;
-  onStreamPreviewChange: (value: boolean) => void;
   onGenerate: () => void;
   isStreaming: boolean;
   estimatedSize?: number;
@@ -19,8 +17,7 @@ interface GeneratePanelProps {
 
 export function GeneratePanel({
   description, onDescriptionChange, safetyClarification, onSafetyClarificationChange,
-  streamPreview, onStreamPreviewChange, onGenerate, isStreaming,
-  estimatedSize, isSizeWarning, collapsed: initialCollapsed = false,
+  onGenerate, isStreaming, estimatedSize, isSizeWarning, collapsed: initialCollapsed = false,
 }: GeneratePanelProps) {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
 
@@ -68,26 +65,15 @@ export function GeneratePanel({
           rows={3}
         />
 
-        <div className="flex items-center gap-4 mt-3">
-          <label className="flex items-center gap-2 text-xs font-semibold text-clay-text/50 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={safetyClarification}
-              onChange={(e) => onSafetyClarificationChange(e.target.checked)}
-              className="rounded-lg accent-clay-blue-400"
-            />
-            安全声明
-          </label>
-          <label className="flex items-center gap-2 text-xs font-semibold text-clay-text/50 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={streamPreview}
-              onChange={(e) => onStreamPreviewChange(e.target.checked)}
-              className="rounded-lg accent-clay-blue-400"
-            />
-            实时预览
-          </label>
-        </div>
+        <label className="mt-3 flex items-center gap-2 text-xs font-semibold text-clay-text/50 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={safetyClarification}
+            onChange={(e) => onSafetyClarificationChange(e.target.checked)}
+            className="rounded-lg accent-clay-blue-400"
+          />
+          安全声明（适用于游戏/博彩类广告素材）
+        </label>
 
         <div className="flex items-center gap-2 mt-4">
           <button

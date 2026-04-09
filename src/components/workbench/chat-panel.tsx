@@ -30,7 +30,6 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
   const [input, setInput] = useState('');
   const [description, setDescription] = useState('');
   const [safetyClarification, setSafetyClarification] = useState(false);
-  const [streamPreview, setStreamPreview] = useState(false);
   const { isStreaming, lastEvent, debugLog, streamingHtml, startStream } = useSSE();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,7 +78,7 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
     setTempMessages([{ role: 'status', content: '🔍 正在生成初稿...' }]);
     await startStream(`/api/projects/${projectId}/generate`, {
       method: 'POST',
-      body: JSON.stringify({ description: description || undefined, safetyClarification, streamPreview }),
+      body: JSON.stringify({ description: description || undefined, safetyClarification, streamPreview: true }),
       token: token || undefined,
     });
   };
@@ -91,7 +90,7 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
     setTempMessages([{ role: 'user', content: msg }, { role: 'status', content: '🛠️ 正在修改...' }]);
     await startStream(`/api/projects/${projectId}/iterate`, {
       method: 'POST',
-      body: JSON.stringify({ message: msg, safetyClarification, streamPreview }),
+      body: JSON.stringify({ message: msg, safetyClarification, streamPreview: true }),
       token: token || undefined,
     });
   };
@@ -119,8 +118,6 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
                   onDescriptionChange={setDescription}
                   safetyClarification={safetyClarification}
                   onSafetyClarificationChange={setSafetyClarification}
-                  streamPreview={streamPreview}
-                  onStreamPreviewChange={setStreamPreview}
                   onGenerate={handleGenerate}
                   isStreaming={isStreaming}
                   estimatedSize={estimatedSize}
