@@ -50,18 +50,29 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
   sse.write('debug', { type: 'generate_prompt', content: `[System Prompt]\n${result.systemPrompt}\n\n[User Prompt]\n${result.prompt}` });
 
   let fullText = '';
-  for await (const chunk of result.stream.textStream) {
-    fullText += chunk;
-    if (params.streamPreview) {
-      sse.write('chunk', { text: chunk });
+  try {
+    for await (const chunk of result.stream.textStream) {
+      fullText += chunk;
+      if (params.streamPreview) {
+        sse.write('chunk', { text: chunk });
+      }
     }
+  } catch (streamError) {
+    const errMsg = streamError instanceof Error ? streamError.message : String(streamError);
+    sse.write('debug', { type: 'stream_error', content: errMsg });
+    sse.write('error', { message: `AI 流式读取失败: ${errMsg}`, canRetry: true });
+    return;
   }
 
-  sse.write('debug', { type: 'generate_response', content: fullText });
+  sse.write('debug', { type: 'generate_response', content: fullText || '(empty response)' });
+  sse.write('debug', { type: 'generate_response_length', content: `Response length: ${fullText.length} chars` });
 
   // Validate raw AI response
   const responseCheck = validateAIResponse(fullText);
-  if (responseCheck.status === 'empty') throw new Error(responseCheck.message);
+  if (responseCheck.status === 'empty') {
+    sse.write('error', { message: `AI 未返回有效内容。响应长度: ${fullText.length}，内容: "${fullText.slice(0, 200)}"`, canRetry: true });
+    return;
+  }
   if (responseCheck.status === 'refused') { sse.write('error', { message: responseCheck.message, type: 'refused' }); return; }
   if (responseCheck.status === 'question') { sse.write('question', { message: responseCheck.message }); return; }
   if (responseCheck.status === 'truncated') { sse.write('status', { step: 'truncated', message: '⚠️ AI 输出被截断，继续处理...' }); }
