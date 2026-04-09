@@ -16,7 +16,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
-    ai: { baseUrl: '', model: '', maxTokens: 16000, systemPromptOverride: '' },
+    ai: { baseUrl: '', model: '', apiKey: '', maxTokens: 16000, systemPromptOverride: '' },
     validation: { maxFileSize: 5242880, warnFileSize: 4194304, platform: 'applovin' },
     compression: { imageQuality: 80, maxImageWidth: 1920, audioTargetKbps: 128 },
     webhook: { url: '', events: ['generate_complete', 'batch_complete'] as string[] },
@@ -59,11 +59,18 @@ export default function SettingsPage() {
             <CardHeader><h3 className="font-bold text-clay-text">AI 服务配置</h3></CardHeader>
             <CardContent className="space-y-4">
               <Input label="API Base URL" value={settings.ai.baseUrl}
+                placeholder="https://api.openai.com/v1"
                 onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, baseUrl: e.target.value } })} />
+              <Input label="API Key" value={settings.ai.apiKey || ''}
+                type="password"
+                placeholder="sk-... 或 Bearer token"
+                onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, apiKey: e.target.value } })} />
               <Input label="模型" value={settings.ai.model}
+                placeholder="gpt-4o / LongCat-Flash-Chat / qwen2.5:72b"
                 onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, model: e.target.value } })} />
               <Input label="最大 Token" type="number" value={String(settings.ai.maxTokens)}
                 onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, maxTokens: Number(e.target.value) } })} />
+              <p className="text-[10px] text-clay-muted">优先级：设置页 &gt; .env 文件 &gt; 默认值。保存后立即生效，无需重启。</p>
             </CardContent>
           </Card>
 

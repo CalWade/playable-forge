@@ -9,6 +9,7 @@ export interface AppSettings {
   ai: {
     baseUrl: string;
     model: string;
+    apiKey?: string;
     maxTokens: number;
     systemPromptOverride?: string;
   };

@@ -5,7 +5,7 @@ export async function getAIProvider() {
   const settings = await getSettings();
   return createOpenAI({
     baseURL: settings.ai.baseUrl || process.env.AI_BASE_URL || 'https://api.openai.com/v1',
-    apiKey: process.env.AI_API_KEY || 'ollama',
+    apiKey: settings.ai.apiKey || process.env.AI_API_KEY || 'ollama',
   });
 }
 
