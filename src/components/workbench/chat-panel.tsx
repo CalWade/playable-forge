@@ -45,6 +45,11 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
   const dbMessages = (historyData?.messages || []).map(
     (m: { role: string; content: string }) => ({ role: m.role, content: m.content })
   );
+
+  // Debug: log SWR data
+  if (typeof window !== 'undefined') {
+    console.log('[chat-panel] token:', token ? 'yes' : 'null', 'convData:', convData, 'historyData:', historyData);
+  }
   const [tempMessages, setTempMessages] = useState<Array<{ role: string; content: string }>>([]);
   const allMessages = [...dbMessages, ...tempMessages];
 
