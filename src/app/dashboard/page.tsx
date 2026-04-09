@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, isLoading, mutate } = useSWR<any>('/api/stats/dashboard', swrFetcher);
+  const { data, isLoading, mutate } = useSWR<any>(token ? '/api/stats/dashboard' : null, swrFetcher);
 
   const handleNewProject = async () => {
     try {

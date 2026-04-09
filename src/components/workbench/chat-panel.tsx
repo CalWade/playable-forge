@@ -35,11 +35,11 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: convData, mutate: refreshConv } = useSWR<any>(
-    `/api/projects/${projectId}/versions`, swrFetcher
+    token ? `/api/projects/${projectId}/versions` : null, swrFetcher
   );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: historyData, mutate: refreshHistory } = useSWR<any>(
-    `/api/projects/${projectId}/conversations`, swrFetcher
+    token ? `/api/projects/${projectId}/conversations` : null, swrFetcher
   );
 
   const dbMessages = (historyData?.messages || []).map(

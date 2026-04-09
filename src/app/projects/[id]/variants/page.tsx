@@ -31,15 +31,15 @@ export default function VariantsPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: configData, isLoading: configLoading } = useSWR<any>(
-    `/api/projects/${projectId}/variant-config`, swrFetcher
+    token ? `/api/projects/${projectId}/variant-config` : null, swrFetcher
   );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: variantData, mutate: refreshVariants } = useSWR<any>(
-    `/api/projects/${projectId}/variants`, swrFetcher
+    token ? `/api/projects/${projectId}/variants` : null, swrFetcher
   );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: versionData } = useSWR<any>(
-    `/api/projects/${projectId}/versions`, swrFetcher
+    token ? `/api/projects/${projectId}/versions` : null, swrFetcher
   );
 
   const lockedVersion = versionData?.versions?.find((v: { isLocked: boolean }) => v.isLocked);

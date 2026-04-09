@@ -38,13 +38,13 @@ export default function ProjectWorkbenchPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: projectData } = useSWR<any>(
-    `/api/projects/${projectId}`,
+    token ? `/api/projects/${projectId}` : null,
     swrFetcher
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: versionData, mutate: refreshVersions } = useSWR<any>(
-    `/api/projects/${projectId}/versions`,
+    token ? `/api/projects/${projectId}/versions` : null,
     swrFetcher,
     { refreshInterval: 5000 }
   );
