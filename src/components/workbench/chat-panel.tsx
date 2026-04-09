@@ -159,19 +159,15 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
               )}
             </div>
           ) : activeTab === 'versions' ? (
-            <div className="h-full overflow-hidden">
-              <VersionList
-                versions={convData?.versions || []}
-                token={token || ''}
-                projectId={projectId}
-                onVersionChange={onVersionChange}
-                onRefresh={refreshConv}
-              />
-            </div>
+            <VersionList
+              versions={convData?.versions || []}
+              token={token || ''}
+              projectId={projectId}
+              onVersionChange={onVersionChange}
+              onRefresh={refreshConv}
+            />
           ) : (
-            <div className="h-full overflow-hidden">
-              <ActivityList projectId={projectId} token={token || ''} />
-            </div>
+            <ActivityList projectId={projectId} token={token || ''} />
           )
         }
       </Tabs>

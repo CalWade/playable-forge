@@ -31,7 +31,7 @@ export function SimpleTabs({ tabs, defaultTab, children, className }: SimpleTabs
           </button>
         ))}
       </div>
-      <div className="flex-1 min-h-0 overflow-hidden">{children(activeTab)}</div>
+      <div className="flex-1 min-h-0 flex flex-col">{children(activeTab)}</div>
     </div>
   );
 }

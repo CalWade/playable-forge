@@ -28,7 +28,7 @@ export function ActivityList({ projectId }: ActivityListProps) {
   const logs = data?.logs || [];
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-2">
+    <div className="h-full overflow-y-auto p-4 space-y-2">
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-clay-blue-400 border-t-transparent" />
