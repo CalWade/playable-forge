@@ -10,9 +10,6 @@ class ApiClient {
 
   setToken(token: string | null) {
     this.token = token;
-    if (typeof window !== 'undefined') {
-      console.log('[api-client] token set:', token ? `${token.slice(0, 10)}...` : 'null');
-    }
   }
 
   private headers(extra?: Record<string, string>): Record<string, string> {
