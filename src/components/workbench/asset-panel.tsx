@@ -148,7 +148,7 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
           </p>
         ) : (
           <div className="grid grid-cols-3 gap-2">
-            {assets.map((asset: { id: string; originalName: string; mimeType: string; fileSize: number; compressedSize: number | null; category: string; variantRole: string; thumbnailUrl: string | null }) => (
+            {assets.map((asset: { id: string; originalName: string; mimeType: string; fileSize: number; compressedSize: number | null; category: string; thumbnailUrl: string | null }) => (
               <AssetCard
                 key={asset.id}
                 asset={asset}

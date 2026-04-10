@@ -15,7 +15,7 @@ export const GET = withAuth(async (_request, { params, auth }) => {
   if (!version) return new Response('Version not found', { status: 404 });
 
   const assets = await prisma.asset.findMany({
-    where: { projectId: params.id, variantRole: { not: 'excluded' } },
+    where: { projectId: params.id },
   });
 
   const slotAssets = await buildSlotMap(version.skeletonHtml, assets);

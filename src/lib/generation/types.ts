@@ -7,7 +7,6 @@ export interface GeneratePipelineParams {
   userId?: string;
   description?: string;
   safetyClarification?: boolean;
-  streamPreview?: boolean;
   sse: SSEWriter;
 }
 
@@ -16,6 +15,5 @@ export interface IteratePipelineParams {
   userId?: string;
   userMessage: string;
   safetyClarification?: boolean;
-  streamPreview?: boolean;
   sse: SSEWriter;
 }

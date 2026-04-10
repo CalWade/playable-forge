@@ -48,28 +48,21 @@ const rules: ValidationRule[] = [
         const matches = html.match(p);
         if (matches) found.push(...matches);
       }
-      // Exclude play.google.com and itunes.apple.com (CTA store links are OK)
-      const nonStoreParsed = found.filter(
-        (f) => !/play\.google\.com|itunes\.apple\.com|apps\.apple\.com/i.test(f)
-      );
       return {
-        passed: nonStoreParsed.length === 0,
-        detail: nonStoreParsed.length === 0 ? '无外部引用' : `发现 ${nonStoreParsed.length} 个外部引用`,
+        passed: found.length === 0,
+        detail: found.length === 0 ? '无外部引用' : `发现 ${found.length} 个外部引用`,
       };
     },
   },
   {
     id: 'mraid-open',
     name: 'MRAID 跳转',
-    level: 'warning', // Downgraded: skeleton may use openStore() wrapper instead of direct mraid.open()
+    level: 'warning',
     check: (html) => {
       const hasMraidOpen = /mraid\.open\s*\(/.test(html);
-      const hasOpenStore = /openStore\s*\(/.test(html);
-      const hasWindowOpen = /window\.open\s*\(/.test(html);
-      const passed = hasMraidOpen || hasOpenStore || hasWindowOpen;
       return {
-        passed,
-        detail: passed ? '包含跳转逻辑' : '缺少跳转逻辑（mraid.open 或 openStore）',
+        passed: hasMraidOpen,
+        detail: hasMraidOpen ? '包含 mraid.open()' : '缺少 mraid.open()（window.open 在 MRAID 容器中无效）',
       };
     },
   },

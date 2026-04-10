@@ -62,9 +62,7 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
   try {
     for await (const chunk of result.stream.textStream) {
       fullText += chunk;
-      if (params.streamPreview) {
-        sse.write('chunk', { text: chunk });
-      }
+      sse.write('chunk', { text: chunk });
     }
   } catch (streamError) {
     const errMsg = streamError instanceof Error ? streamError.message : String(streamError);

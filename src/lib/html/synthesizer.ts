@@ -60,19 +60,16 @@ export function synthesize(
     }
   });
 
-  // Check for remaining PLACEHOLDERs
+  // Check for remaining PLACEHOLDERs — simple global check
   const unreplacedSlots: string[] = [];
-  const unreplacedRegex = /data-variant-slot="([^"]+)"/g;
-  let umatch;
-  while ((umatch = unreplacedRegex.exec(html)) !== null) {
-    const name = umatch[1];
-    // Check if there's still a PLACEHOLDER near this slot
-    const surrounding = html.substring(
-      Math.max(0, umatch.index - 200),
-      Math.min(html.length, umatch.index + 200)
-    );
-    if (surrounding.includes('PLACEHOLDER') && !unreplacedSlots.includes(name)) {
-      unreplacedSlots.push(name);
+  if (html.includes('PLACEHOLDER')) {
+    const slotRegex2 = /data-variant-slot="([^"]+)"/g;
+    let umatch;
+    while ((umatch = slotRegex2.exec(html)) !== null) {
+      const name = umatch[1];
+      if (!unreplacedSlots.includes(name) && !replacedSlots.includes(name)) {
+        unreplacedSlots.push(name);
+      }
     }
   }
 

@@ -68,10 +68,10 @@ export const GENERATE_SYSTEM_PROMPT = `你是一个 Playable Ad HTML 开发专�
   });
 })();
 function openStore() {
+  // AppLovin MRAID: platform injects the real store URL at runtime
+  // Use a placeholder URL — AppLovin will intercept mraid.open() calls
   if (typeof mraid !== 'undefined') {
-    mraid.open('https://play.google.com/store');
-  } else {
-    window.open('https://play.google.com/store');
+    mraid.open('https://example.com/store');
   }
 }
 </script>

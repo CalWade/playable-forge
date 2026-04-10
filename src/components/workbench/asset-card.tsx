@@ -12,7 +12,6 @@ interface Asset {
   fileSize: number;
   compressedSize: number | null;
   category: string;
-  variantRole: string;
   thumbnailUrl: string | null;
 }
 
@@ -38,12 +37,6 @@ const CATEGORY_OPTIONS = Object.entries(CATEGORY_LABELS).map(([value, label]) =>
   value,
   label,
 }));
-
-const ROLE_OPTIONS = [
-  { value: 'variant', label: '参与变体' },
-  { value: 'fixed', label: '固定素材' },
-  { value: 'excluded', label: '不使用' },
-];
 
 interface AssetCardProps {
   asset: Asset;
@@ -110,12 +103,6 @@ export function AssetCard({ asset, projectId, onUpdate, token, onSaveToLibrary }
           value={asset.category}
           options={CATEGORY_OPTIONS}
           onChange={(v) => updateAsset({ category: v, categoryConfirmed: true })}
-          className="w-full text-[10px]"
-        />
-        <SelectDropdown
-          value={asset.variantRole}
-          options={ROLE_OPTIONS}
-          onChange={(v) => updateAsset({ variantRole: v })}
           className="w-full text-[10px]"
         />
         {onSaveToLibrary && (

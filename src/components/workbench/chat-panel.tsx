@@ -78,7 +78,7 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
     setTempMessages([{ role: 'status', content: '🔍 正在生成初稿...' }]);
     await startStream(`/api/projects/${projectId}/generate`, {
       method: 'POST',
-      body: JSON.stringify({ description: description || undefined, safetyClarification, streamPreview: true }),
+      body: JSON.stringify({ description: description || undefined, safetyClarification }),
       token: token || undefined,
     });
   };
@@ -90,7 +90,7 @@ export function ChatPanel({ projectId, onVersionChange, onAssetChange, onStreami
     setTempMessages([{ role: 'user', content: msg }, { role: 'status', content: '🛠️ 正在修改...' }]);
     await startStream(`/api/projects/${projectId}/iterate`, {
       method: 'POST',
-      body: JSON.stringify({ message: msg, safetyClarification, streamPreview: true }),
+      body: JSON.stringify({ message: msg, safetyClarification }),
       token: token || undefined,
     });
   };
