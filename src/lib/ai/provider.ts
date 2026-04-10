@@ -1,19 +1,54 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { getSettings } from '@/lib/settings';
+import { getSettings, getAIConfig } from '@/lib/settings';
+import type { AIOverrides } from '@/lib/settings';
 
-export async function getAIProvider() {
-  const settings = await getSettings();
+/**
+ * Create an OpenAI-compatible provider for a specific purpose.
+ * Each purpose can have its own baseUrl, apiKey, and model.
+ * Falls back to primary AI config for missing fields.
+ */
+export async function getProviderForPurpose(purpose?: keyof AIOverrides) {
+  const config = purpose ? await getAIConfig(purpose) : await getPrimaryConfig();
   return createOpenAI({
-    baseURL: settings.ai.baseUrl || process.env.AI_BASE_URL || 'https://api.openai.com/v1',
-    apiKey: settings.ai.apiKey || process.env.AI_API_KEY || 'ollama',
+    baseURL: config.baseUrl,
+    apiKey: config.apiKey || 'ollama',
   });
 }
 
+/**
+ * Get a chat model for a specific purpose.
+ * Uses .chat() to force /v1/chat/completions (compatible with third-party APIs).
+ */
+export async function getModelForPurpose(purpose?: keyof AIOverrides, modelOverride?: string) {
+  const config = purpose ? await getAIConfig(purpose) : await getPrimaryConfig();
+  const provider = await getProviderForPurpose(purpose);
+  return provider.chat(modelOverride || config.model);
+}
+
+// ==================== Backwards-compatible exports ====================
+
+/**
+ * Get the primary (generation) model. Used by orchestrator for generate/iterate/autofix.
+ */
 export async function getModel(modelId?: string) {
+  return getModelForPurpose(undefined, modelId);
+}
+
+/**
+ * Get the classification model. May use a different provider/model than generation.
+ */
+export async function getClassificationModel() {
+  return getModelForPurpose('classification');
+}
+
+// ==================== Internal ====================
+
+async function getPrimaryConfig() {
   const settings = await getSettings();
-  const provider = await getAIProvider();
-  const model = modelId || settings.ai.model || process.env.AI_MODEL || 'gpt-4o';
-  // Use .chat() to force /v1/chat/completions endpoint.
-  // Default provider(model) uses /responses which third-party APIs don't support.
-  return provider.chat(model);
+  return {
+    baseUrl: settings.ai.baseUrl || 'https://api.openai.com/v1',
+    model: settings.ai.model || 'gpt-4o',
+    apiKey: settings.ai.apiKey,
+    maxTokens: settings.ai.maxTokens,
+  };
 }

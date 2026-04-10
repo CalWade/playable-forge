@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     ai: { baseUrl: '', model: '', apiKey: '', maxTokens: 16000, systemPromptOverride: '' },
+    aiOverrides: { classification: { baseUrl: '', model: '', apiKey: '', maxTokens: 2000 } },
     validation: { maxFileSize: 5242880, warnFileSize: 4194304, platform: 'applovin' },
     compression: { imageQuality: 80, maxImageWidth: 1920, audioTargetKbps: 128 },
     webhook: { url: '', events: ['generate_complete', 'batch_complete'] as string[] },
@@ -71,6 +72,41 @@ export default function SettingsPage() {
               <Input label="最大 Token" type="number" value={String(settings.ai.maxTokens)}
                 onChange={(e) => setSettings({ ...settings, ai: { ...settings.ai, maxTokens: Number(e.target.value) } })} />
               <p className="text-[10px] text-clay-muted">优先级：设置页 &gt; .env 文件 &gt; 默认值。保存后立即生效，无需重启。</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><h3 className="font-bold text-clay-text">素材分类 AI（可选独立配置）</h3></CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-[10px] text-clay-muted">素材分类使用多模态 AI 识别图片内容。留空则复用上方的 AI 服务配置。</p>
+              <Input label="API Base URL" value={settings.aiOverrides?.classification?.baseUrl || ''}
+                placeholder="留空使用主配置"
+                onChange={(e) => setSettings({
+                  ...settings,
+                  aiOverrides: {
+                    ...settings.aiOverrides,
+                    classification: { ...settings.aiOverrides?.classification, baseUrl: e.target.value },
+                  },
+                })} />
+              <Input label="API Key" value={settings.aiOverrides?.classification?.apiKey || ''}
+                type="password"
+                placeholder="留空使用主配置"
+                onChange={(e) => setSettings({
+                  ...settings,
+                  aiOverrides: {
+                    ...settings.aiOverrides,
+                    classification: { ...settings.aiOverrides?.classification, apiKey: e.target.value },
+                  },
+                })} />
+              <Input label="模型" value={settings.aiOverrides?.classification?.model || ''}
+                placeholder="留空使用主配置（建议用支持视觉的模型）"
+                onChange={(e) => setSettings({
+                  ...settings,
+                  aiOverrides: {
+                    ...settings.aiOverrides,
+                    classification: { ...settings.aiOverrides?.classification, model: e.target.value },
+                  },
+                })} />
             </CardContent>
           </Card>
 

@@ -1,5 +1,5 @@
 import { generateText } from 'ai';
-import { getModel } from './provider';
+import { getClassificationModel } from './provider';
 import { inferFromFile } from '@/lib/assets/classifier';
 import type { ClassificationResult } from '@/types';
 import fs from 'fs/promises';
@@ -95,7 +95,7 @@ export async function classifyAssets(assets: AssetClassifyInfo[]): Promise<Class
 
   try {
     const result = await generateText({
-      model: await getModel(),
+      model: await getClassificationModel(),
       system: CLASSIFY_SYSTEM_PROMPT,
       messages: [{ role: 'user' as const, content }],
       maxOutputTokens: 2000,
