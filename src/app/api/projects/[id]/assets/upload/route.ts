@@ -80,12 +80,17 @@ export const POST = withAuth(async (request, { params, auth }) => {
     });
   }
 
-  // AI classification
+  // AI classification (with thumbnails for visual analysis)
   try {
-    const assetInfos = assets.map((a) => ({
+    const dbAssets = await prisma.asset.findMany({
+      where: { id: { in: assets.map(a => a.id) } },
+      select: { id: true, fileName: true, originalName: true, mimeType: true, fileSize: true, width: true, height: true, thumbnailPath: true },
+    });
+    const assetInfos = dbAssets.map((a) => ({
       fileName: a.fileName, originalName: a.originalName,
       mimeType: a.mimeType, fileSize: a.fileSize,
       width: a.width, height: a.height,
+      thumbnailPath: a.thumbnailPath,
     }));
     const classifications = await classifyAssets(assetInfos);
 
