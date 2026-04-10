@@ -41,8 +41,6 @@ function classifyByFilename(asset: AssetClassifyInfo): ClassificationResult {
     category: inferred.category,
     confidence: 0.5,
     suggestedSlotName: inferred.slotName,
-    suggestedVariantRole: 'fixed',
-    suggestedVariantGroup: undefined,
   };
 }
 
@@ -103,8 +101,6 @@ export async function classifyAssets(assets: AssetClassifyInfo[]): Promise<Class
         category: a.category as string,
         confidence: (a.confidence as number) || 0.8,
         suggestedSlotName: (a.suggestedSlotName as string) || a.category,
-        suggestedVariantRole: 'fixed' as const,
-        suggestedVariantGroup: undefined,
       }));
     }
     throw new Error('Invalid response format');

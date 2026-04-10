@@ -115,6 +115,4 @@ export interface ClassificationResult {
   category: AssetCategory;
   confidence: number;
   suggestedSlotName?: string;
-  suggestedVariantRole: VariantRole;
-  suggestedVariantGroup?: string;
 }

@@ -30,7 +30,6 @@ export default function ProjectWorkbenchPage() {
 
   // Compute estimated HTML size from assets
   const totalAssetSize = assets
-    .filter((a: { variantRole: string }) => a.variantRole !== 'excluded')
     .reduce((sum: number, a: { compressedSize: number | null; fileSize: number }) => sum + (a.compressedSize || a.fileSize), 0);
   const estimatedHtmlSize = Math.ceil(totalAssetSize * 1.37) + 50 * 1024;
   const MAX_SIZE = 5 * 1024 * 1024;

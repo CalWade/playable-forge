@@ -30,12 +30,11 @@ async function getSystemPrompt(defaultPrompt: string): Promise<string> {
 }
 
 function buildAssetList(assets: AssetMetadata[]): string {
-  const included = assets.filter((a) => a.variantRole !== 'excluded');
-  const excluded = assets.filter((a) => a.variantRole === 'excluded');
+  // All assets in Asset table are included in HTML (excluded/reference are in separate tables)
 
   // Group by category for summary
   const groups = new Map<string, AssetMetadata[]>();
-  for (const a of included) {
+  for (const a of assets) {
     const cat = a.category || 'unrecognized';
     if (!groups.has(cat)) groups.set(cat, []);
     groups.get(cat)!.push(a);
@@ -47,7 +46,7 @@ function buildAssetList(assets: AssetMetadata[]): string {
     .join('\n');
 
   // Build detailed list — only what AI needs for HTML generation
-  const details = included
+  const details = assets
     .map((a) => {
       const slot = getSlotName(a);
       const size = a.width && a.height ? `${a.width}x${a.height}` : '尺寸未知';
@@ -55,15 +54,7 @@ function buildAssetList(assets: AssetMetadata[]): string {
     })
     .join('\n');
 
-  let result = `### 素材概览\n${summary}\n\n### 素材详情（每个素材必须在 HTML 中有对应的 data-variant-slot）\n${details}`;
-
-  // Note about reference images
-  if (excluded.length > 0) {
-    const refNames = excluded.map(a => a.originalName).join(', ');
-    result += `\n\n### 参考素材（不参与 HTML，仅供布局参考）\n${refNames}`;
-  }
-
-  return result;
+  return `### 素材概览\n${summary}\n\n### 素材详情（每个素材必须在 HTML 中有对应的 data-variant-slot）\n${details}`;
 }
 
 export async function generateSkeleton(params: GenerateParams) {

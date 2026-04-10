@@ -46,7 +46,6 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
   };
 
   const totalSize = assets
-    .filter((a: { variantRole: string }) => a.variantRole !== 'excluded')
     .reduce(
       (sum: number, a: { compressedSize: number | null; fileSize: number }) =>
         sum + (a.compressedSize || a.fileSize),
