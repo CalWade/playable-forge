@@ -57,7 +57,7 @@ const rules: ValidationRule[] = [
   {
     id: 'mraid-open',
     name: 'MRAID 跳转',
-    level: 'warning',
+    level: 'error',
     check: (html) => {
       const hasMraidOpen = /mraid\.open\s*\(/.test(html);
       return {
