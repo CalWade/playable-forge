@@ -27,11 +27,6 @@ export function inferFromFile(file: FileInfo): InferResult {
     return { category: 'audio', slotName: 'bgm', variantRole: 'fixed' };
   }
 
-  // Reference / mockup
-  if (name.includes('效果') || name.includes('参考') || name.includes('reference') || name.includes('mockup')) {
-    return { category: 'reference', slotName: 'reference', variantRole: 'excluded' };
-  }
-
   // Background
   if (name.includes('背景') || name.includes('bg') || name.includes('background')) {
     return { category: 'background', slotName: 'background', variantRole: 'variant', variantGroup: 'background' };

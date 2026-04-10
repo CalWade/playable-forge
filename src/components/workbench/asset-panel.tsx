@@ -8,7 +8,9 @@ import { useAuth } from '@/components/auth-provider';
 import { LibrarySelectModal } from '@/components/library/library-select-modal';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/lib/api-client';
-import { FolderOpen } from 'lucide-react';
+import useSWR from 'swr';
+import { swrFetcher } from '@/lib/swr-fetcher';
+import { FolderOpen, Image, X } from 'lucide-react';
 
 interface AssetPanelProps {
   projectId: string;
@@ -18,6 +20,30 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
   const { assets, isLoading, refresh } = useAssets(projectId);
   const { token } = useAuth();
   const [showLibrary, setShowLibrary] = useState(false);
+
+  // Reference images (separate from assets)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: refData, mutate: refreshRefs } = useSWR<any>(
+    token ? `/api/projects/${projectId}/references` : null, swrFetcher
+  );
+  const references = refData?.references || [];
+
+  const handleRefUpload = async (files: FileList | File[]) => {
+    const formData = new FormData();
+    Array.from(files).forEach((f) => formData.append('files', f));
+    try {
+      await api.upload(`/api/projects/${projectId}/references`, formData);
+      refreshRefs();
+      toast('效果参考图已上传', 'success');
+    } catch { toast('上传失败', 'error'); }
+  };
+
+  const handleRefDelete = async (refId: string) => {
+    try {
+      await api.del(`/api/projects/${projectId}/references?refId=${refId}`);
+      refreshRefs();
+    } catch { /* ignore */ }
+  };
 
   const totalSize = assets
     .filter((a: { variantRole: string }) => a.variantRole !== 'excluded')
@@ -112,6 +138,47 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Reference Images Section */}
+      <div className="border-t border-clay-blue-50/30 px-3 py-3 flex-shrink-0">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-xs font-bold text-clay-text/60 flex items-center gap-1">
+            <Image size={12} /> 成品效果参考图（可选）
+          </h4>
+        </div>
+
+        {references.length > 0 && (
+          <div className="flex gap-1.5 mb-2 flex-wrap">
+            {references.map((ref: { id: string; originalName: string; thumbnailUrl: string }) => (
+              <div key={ref.id} className="relative group">
+                <img
+                  src={`${ref.thumbnailUrl}?token=${token}`}
+                  alt={ref.originalName}
+                  className="w-12 h-12 rounded-lg object-cover border border-clay-blue-50"
+                  title={ref.originalName}
+                />
+                <button
+                  onClick={() => handleRefDelete(ref.id)}
+                  className="absolute -top-1 -right-1 hidden group-hover:flex w-4 h-4 rounded-full bg-red-400 text-white items-center justify-center"
+                >
+                  <X size={8} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <label className="flex cursor-pointer items-center justify-center gap-1 rounded-clay-sm border border-dashed border-clay-blue-100 hover:border-clay-blue-200 px-2 py-1.5 text-[10px] font-semibold text-clay-muted hover:text-clay-blue-300 clay-transition">
+          <Image size={10} /> 上传效果参考图
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => { if (e.target.files) handleRefUpload(e.target.files); e.target.value = ''; }}
+          />
+        </label>
       </div>
 
       <LibrarySelectModal

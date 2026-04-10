@@ -101,7 +101,6 @@ export interface SSEEvent {
 // ==================== Classification ====================
 
 export type AssetCategory =
-  | 'reference'
   | 'background'
   | 'popup'
   | 'button'

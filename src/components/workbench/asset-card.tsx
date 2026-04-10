@@ -17,7 +17,6 @@ interface Asset {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  reference: '效果图',
   background: '背景',
   popup: '弹窗',
   button: '按钮',
@@ -27,7 +26,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const CATEGORY_VARIANTS: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info'> = {
-  reference: 'info',
   background: 'success',
   popup: 'warning',
   button: 'error',

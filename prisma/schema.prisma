@@ -43,6 +43,7 @@ model Project {
   conversations ConversationMessage[]
   stats         ProjectStats?
   activityLogs  ActivityLog[]
+  referenceImages ReferenceImage[]
 }
 
 // ==================== 素材 ====================
@@ -176,6 +177,25 @@ model ProjectTemplate {
   updatedAt       DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+}
+
+// ==================== 效果参考图（独立于素材）====================
+
+model ReferenceImage {
+  id             String   @id @default(cuid())
+  projectId      String
+  fileName       String
+  originalName   String
+  mimeType       String
+  fileSize       Int
+  width          Int?
+  height         Int?
+  filePath       String
+  thumbnailPath  String?
+  base64CachePath String?
+  createdAt      DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 // ==================== 素材资产库 ====================

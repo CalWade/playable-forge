@@ -15,9 +15,10 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
   const assets = await prisma.asset.findMany({ where: { projectId } });
   if (assets.length === 0) throw new Error('No assets uploaded');
 
-  // Get reference images
+  // Get reference images from dedicated table (separate from assets)
   const referenceImageBase64: string[] = [];
-  for (const ref of assets.filter((a) => a.category === 'reference')) {
+  const refImages = await prisma.referenceImage.findMany({ where: { projectId } });
+  for (const ref of refImages) {
     if (ref.base64CachePath) {
       try { referenceImageBase64.push(await readBase64(ref.base64CachePath)); } catch (e) { console.warn("Skipped:", e instanceof Error ? e.message : e); }
     }

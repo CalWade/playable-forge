@@ -101,8 +101,6 @@ export const POST = withAuth(async (request, { params, auth }) => {
           where: { id: asset.id },
           data: {
             category: classification.category,
-            variantRole: classification.suggestedVariantRole,
-            variantGroup: classification.suggestedVariantGroup || null,
             slotName: classification.suggestedSlotName || classification.category,
           },
         });
