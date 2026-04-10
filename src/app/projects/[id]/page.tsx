@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useSWRConfig } from 'swr';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
-import { ArrowLeft, Settings, Lock } from 'lucide-react';
+import { ArrowLeft, Settings, Lock, Copy } from 'lucide-react';
 import useSWR from 'swr';
 import { useAssets } from '@/hooks/use-assets';
 import { api } from '@/lib/api-client';
@@ -167,6 +167,19 @@ export default function ProjectWorkbenchPage() {
 
         {/* Bottom bar */}
         <div className="flex items-center justify-end gap-3 rounded-clay-lg clay-gradient-surface clay-shadow px-5 py-3 flex-shrink-0">
+          {currentVersionId && (
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  await api.post('/api/templates', { projectId, name: `${project?.name || '项目'}-模板` });
+                  toast('已保存为模板', 'success');
+                } catch { toast('保存失败（需要至少一个版本）', 'error'); }
+              }}
+            >
+              <Copy size={16} className="mr-1.5" /> 存为模板
+            </Button>
+          )}
           {currentVersionId && (
             <a
               href={`/api/projects/${projectId}/preview/${currentVersionId}?token=${token}`}

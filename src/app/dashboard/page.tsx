@@ -117,16 +117,6 @@ export default function DashboardPage() {
                         </Badge>
                       </div>
                       <div className="flex items-center gap-6">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSaveAsTemplate(p.id, p.name);
-                          }}
-                          className="text-xs font-bold text-clay-muted hover:text-clay-blue-400 clay-transition"
-                          title="存为模板"
-                        >
-                          <Copy size={14} />
-                        </button>
                         <span className="text-sm font-semibold text-clay-text/50">{p.variantCount}</span>
                         <span className="text-sm font-medium text-clay-text/40">
                           {new Date(p.createdAt).toLocaleDateString('zh-CN')}
