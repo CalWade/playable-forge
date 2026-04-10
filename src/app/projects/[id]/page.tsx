@@ -85,9 +85,9 @@ export default function ProjectWorkbenchPage() {
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen flex-col bg-clay-bg p-3 gap-3">
-        {/* Header */}
-        <header className="flex items-center justify-between rounded-clay-lg clay-gradient-surface clay-shadow px-5 py-3 flex-shrink-0">
+      <div className="flex h-screen flex-col bg-clay-bg p-2 gap-2">
+        {/* Header - compact */}
+        <header className="flex items-center justify-between rounded-clay-lg clay-gradient-surface clay-shadow px-4 py-2 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <button onClick={() => router.push('/dashboard')} className="text-clay-blue-400 hover:text-clay-blue-300 clay-transition flex-shrink-0">
               <ArrowLeft size={18} />
@@ -136,8 +136,8 @@ export default function ProjectWorkbenchPage() {
         </header>
 
         {/* Three-column layout */}
-        <div className="flex flex-1 overflow-hidden bg-clay-bg p-3 gap-3">
-          <div className="w-72 flex-shrink-0 overflow-y-auto rounded-clay-lg clay-gradient-surface clay-shadow">
+        <div className="flex flex-1 overflow-hidden bg-clay-bg gap-2">
+          <div className="w-80 flex-shrink-0 overflow-y-auto rounded-clay-lg clay-gradient-surface clay-shadow">
             <AssetPanel projectId={projectId} />
           </div>
           <div className="flex flex-1 flex-col rounded-clay-lg clay-gradient-surface clay-shadow">
@@ -164,8 +164,8 @@ export default function ProjectWorkbenchPage() {
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="flex items-center justify-end gap-3 rounded-clay-lg clay-gradient-surface clay-shadow px-5 py-3 flex-shrink-0">
+        {/* Bottom bar - compact */}
+        <div className="flex items-center justify-end gap-2 rounded-clay-lg clay-gradient-surface clay-shadow px-4 py-2 flex-shrink-0">
           {currentVersionId && (
             <Button
               variant="outline"
