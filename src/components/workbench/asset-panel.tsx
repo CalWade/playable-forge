@@ -10,7 +10,7 @@ import { toast } from '@/components/ui/toast';
 import { api } from '@/lib/api-client';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/swr-fetcher';
-import { FolderOpen, Image, X } from 'lucide-react';
+import { FolderOpen, Image, X, Sparkles } from 'lucide-react';
 
 interface AssetPanelProps {
   projectId: string;
@@ -20,6 +20,7 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
   const { assets, isLoading, refresh } = useAssets(projectId);
   const { token } = useAuth();
   const [showLibrary, setShowLibrary] = useState(false);
+  const [classifying, setClassifying] = useState(false);
 
   // Reference images (separate from assets)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,6 +72,19 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
     } catch { toast('导入失败', 'error'); }
   };
 
+  const handleClassify = async () => {
+    setClassifying(true);
+    try {
+      const result = await api.post<{ classified: number; total: number }>(`/api/projects/${projectId}/assets/classify`);
+      refresh();
+      toast(`已分类 ${result.classified}/${result.total} 个素材`, 'success');
+    } catch (e) {
+      toast(e instanceof Error ? e.message : '分类失败', 'error');
+    } finally {
+      setClassifying(false);
+    }
+  };
+
   return (
     <div className="flex h-full flex-col">
       <div className="px-4 py-3">
@@ -85,6 +99,15 @@ export function AssetPanel({ projectId }: AssetPanelProps) {
         >
           <FolderOpen size={12} /> 从素材库选择
         </button>
+        {assets.length > 0 && (
+          <button
+            onClick={handleClassify}
+            disabled={classifying}
+            className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-clay clay-gradient-primary text-white clay-shadow-sm px-3 py-2 text-xs font-bold hover:clay-shadow hover:-translate-y-0.5 clay-transition disabled:opacity-50"
+          >
+            <Sparkles size={12} /> {classifying ? 'AI 分类中...' : '🔍 AI 视觉分类'}
+          </button>
+        )}
       </div>
 
       {/* Size estimate */}

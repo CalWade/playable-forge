@@ -1,6 +1,5 @@
 import { generateText } from 'ai';
 import { getClassificationModel } from './provider';
-import { inferFromFile } from '@/lib/assets/classifier';
 import type { ClassificationResult } from '@/types';
 import fs from 'fs/promises';
 
@@ -29,19 +28,6 @@ export interface AssetClassifyInfo {
   width: number | null;
   height: number | null;
   thumbnailPath?: string | null;
-}
-
-/**
- * Filename-based classification fallback using shared classifier
- */
-function classifyByFilename(asset: AssetClassifyInfo): ClassificationResult {
-  const inferred = inferFromFile(asset);
-  return {
-    fileName: asset.originalName,
-    category: inferred.category,
-    confidence: 0.5,
-    suggestedSlotName: inferred.slotName,
-  };
 }
 
 /**
@@ -105,7 +91,7 @@ export async function classifyAssets(assets: AssetClassifyInfo[]): Promise<Class
     }
     throw new Error('Invalid response format');
   } catch (error) {
-    console.error('AI classification failed, using filename-based fallback:', error);
-    return assets.map(classifyByFilename);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`素材分类失败: ${message}`);
   }
 }
