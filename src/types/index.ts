@@ -5,6 +5,7 @@ export interface AssetMetadata {
   category: string;
   slotName: string | null;
   variantRole: string;
+  variantGroup: string | null;
   width: number | null;
   height: number | null;
   mimeType: string;

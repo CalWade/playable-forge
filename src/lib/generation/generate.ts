@@ -28,6 +28,7 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
     category: a.category,
     slotName: a.slotName,
     variantRole: a.variantRole,
+    variantGroup: a.variantGroup,
     width: a.width,
     height: a.height,
     mimeType: a.mimeType,

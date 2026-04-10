@@ -30,15 +30,55 @@ async function getSystemPrompt(defaultPrompt: string): Promise<string> {
 }
 
 function buildAssetList(assets: AssetMetadata[]): string {
-  return assets
-    .filter((a) => a.variantRole !== 'excluded')
-    .map(
-      (a) =>
-        `- ${a.originalName} | 分类: ${a.category} | slot: ${getSlotName(a)} | ${
-          a.width && a.height ? `${a.width}x${a.height}` : '尺寸未知'
-        } | ${a.mimeType}`
-    )
+  const included = assets.filter((a) => a.variantRole !== 'excluded');
+  const excluded = assets.filter((a) => a.variantRole === 'excluded');
+
+  // Group by category for summary
+  const groups = new Map<string, AssetMetadata[]>();
+  for (const a of included) {
+    const cat = a.category || 'unrecognized';
+    if (!groups.has(cat)) groups.set(cat, []);
+    groups.get(cat)!.push(a);
+  }
+
+  // Build summary
+  const summary = Array.from(groups.entries())
+    .map(([cat, items]) => {
+      const variantCount = items.filter(a => a.variantRole === 'variant').length;
+      const fixedCount = items.filter(a => a.variantRole === 'fixed').length;
+      const roles = [];
+      if (variantCount > 0) roles.push(`${variantCount} 个变体`);
+      if (fixedCount > 0) roles.push(`${fixedCount} 个固定`);
+      return `- ${cat}: ${items.length} 个素材 (${roles.join(', ') || '未指定角色'})`;
+    })
     .join('\n');
+
+  // Build detailed list
+  const details = included
+    .map((a) => {
+      const slot = getSlotName(a);
+      const size = a.width && a.height ? `${a.width}x${a.height}` : '尺寸未知';
+      const role = a.variantRole === 'variant' ? '🔄变体' : '📌固定';
+      const group = a.variantGroup ? ` [组:${a.variantGroup}]` : '';
+      return `- ${a.originalName} | slot="${slot}" | ${a.category} | ${size} | ${role}${group}`;
+    })
+    .join('\n');
+
+  let result = `### 素材概览\n${summary}\n\n### 素材详情\n${details}`;
+
+  // Note about reference images
+  if (excluded.length > 0) {
+    const refNames = excluded.map(a => a.originalName).join(', ');
+    result += `\n\n### 参考素材（不参与 HTML，仅供布局参考）\n${refNames}`;
+  }
+
+  // Slot usage instructions
+  result += `\n\n### Slot 使用说明`;
+  result += `\n- 每个 📌固定 素材必须在 HTML 中有一个对应的 data-variant-slot="${'对应slot值'}"`;
+  result += `\n- 🔄变体 素材同组中只需使用第一个作为默认占位，批量替换时会自动切换`;
+  result += `\n- slot 名称必须与上面列表中的 slot 值完全匹配`;
+
+  return result;
 }
 
 export async function generateSkeleton(params: GenerateParams) {
