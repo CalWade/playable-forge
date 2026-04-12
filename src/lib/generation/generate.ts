@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { generateSkeleton, extractHtml } from '@/lib/ai/orchestrator';
+import { generateSkeleton, extractHtml, getSlotName } from '@/lib/ai/orchestrator';
 import { validateAIResponse } from '@/lib/ai/response-validator';
 import { readBase64 } from '@/lib/assets/base64';
 import { logActivity } from '@/lib/activity-log';
@@ -34,6 +34,18 @@ export async function runGeneratePipeline(params: GeneratePipelineParams) {
     height: a.height,
     mimeType: a.mimeType,
   }));
+
+  // Ensure every asset has a slotName in DB (needed for synthesis matching)
+  for (const a of assets) {
+    const derived = getSlotName({
+      originalName: a.originalName, category: a.category, slotName: a.slotName,
+      variantRole: a.variantRole, variantGroup: a.variantGroup,
+      width: a.width, height: a.height, mimeType: a.mimeType,
+    });
+    if (a.slotName !== derived) {
+      await prisma.asset.update({ where: { id: a.id }, data: { slotName: derived } });
+    }
+  }
 
   sse.write('status', { step: 'understanding', message: '🔍 正在理解素材和意图...' });
 

@@ -1,7 +1,6 @@
 import { streamText, generateText } from 'ai';
 import { getModel } from './provider';
 import { GENERATE_SYSTEM_PROMPT, ITERATE_SYSTEM_PROMPT } from './prompts';
-import { inferSlotName } from '@/lib/assets/classifier';
 import { getSettings } from '@/lib/settings';
 import { SAFETY_CLARIFICATION } from '@/lib/ai/response-validator';
 import type { AssetMetadata } from '@/types';
@@ -13,10 +12,16 @@ interface GenerateParams {
   safetyClarification?: boolean;
 }
 
-function getSlotName(a: AssetMetadata): string {
+/**
+ * Get the slot name for an asset. If slotName is set, use it.
+ * Otherwise derive a stable name from the filename.
+ * This name is also what gets passed to AI in the prompt,
+ * and must match Asset.slotName for synthesis to work.
+ */
+export function getSlotName(a: AssetMetadata): string {
   if (a.slotName && a.slotName !== 'unrecognized') return a.slotName;
-  if (a.category && a.category !== 'unrecognized') return a.category;
-  return inferSlotName(a);
+  // Derive from filename: "bg-forest.png" → "bg-forest"
+  return a.originalName.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '-').toLowerCase();
 }
 
 async function getSystemPrompt(defaultPrompt: string): Promise<string> {
