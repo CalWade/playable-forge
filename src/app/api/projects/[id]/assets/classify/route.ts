@@ -44,17 +44,13 @@ export const POST = withAuth(async (_request, { params, auth }) => {
     if (asset) {
       await prisma.asset.update({
         where: { id: asset.id },
-        data: {
-          category: classification.category,
-          slotName: classification.suggestedSlotName || classification.category,
-        },
+        data: { category: classification.category },
       });
       results.push({
         id: asset.id,
         originalName: asset.originalName,
         category: classification.category,
         confidence: classification.confidence,
-        slotName: classification.suggestedSlotName || classification.category,
       });
     }
   }

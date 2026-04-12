@@ -114,5 +114,4 @@ export interface ClassificationResult {
   fileName: string;
   category: AssetCategory;
   confidence: number;
-  suggestedSlotName?: string;
 }

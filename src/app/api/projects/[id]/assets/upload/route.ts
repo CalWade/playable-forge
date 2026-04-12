@@ -24,9 +24,15 @@ export const POST = withAuth(async (request, { params, auth }) => {
   const uploadDir = path.join(DATA_DIR, 'uploads', projectId);
   await fs.mkdir(uploadDir, { recursive: true });
 
+  // Generate sequential slot IDs: s1, s2, s3...
+  const existingCount = await prisma.asset.count({ where: { projectId } });
+  let slotCounter = existingCount;
+
   const assets = [];
 
   for (const file of files) {
+    slotCounter++;
+    const slotName = `s${slotCounter}`;
     const assetId = crypto.randomUUID().replace(/-/g, '').slice(0, 20);
     const ext = path.extname(file.name).toLowerCase() || '.bin';
     const fileName = `${assetId}-original${ext}`;
@@ -67,6 +73,7 @@ export const POST = withAuth(async (request, { params, auth }) => {
         projectId, fileName, originalName: file.name, mimeType, fileSize,
         compressedSize, width, height, duration,
         filePath: compressedPath, thumbnailPath, base64CachePath,
+        slotName,
       },
     });
 

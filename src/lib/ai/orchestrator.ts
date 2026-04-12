@@ -13,15 +13,11 @@ interface GenerateParams {
 }
 
 /**
- * Get the slot name for an asset. If slotName is set, use it.
- * Otherwise derive a stable name from the filename.
- * This name is also what gets passed to AI in the prompt,
- * and must match Asset.slotName for synthesis to work.
+ * Get the slot name for an asset. Just returns Asset.slotName.
+ * SlotName is assigned at upload time (s1, s2, s3...) and never changes.
  */
 export function getSlotName(a: AssetMetadata): string {
-  if (a.slotName && a.slotName !== 'unrecognized') return a.slotName;
-  // Derive from filename: "bg-forest.png" → "bg-forest"
-  return a.originalName.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '-').toLowerCase();
+  return a.slotName || 'unknown';
 }
 
 async function getSystemPrompt(defaultPrompt: string): Promise<string> {
@@ -35,8 +31,6 @@ async function getSystemPrompt(defaultPrompt: string): Promise<string> {
 }
 
 function buildAssetList(assets: AssetMetadata[]): string {
-  // All assets in Asset table are included in HTML (excluded/reference are in separate tables)
-
   // Group by category for summary
   const groups = new Map<string, AssetMetadata[]>();
   for (const a of assets) {
@@ -45,21 +39,20 @@ function buildAssetList(assets: AssetMetadata[]): string {
     groups.get(cat)!.push(a);
   }
 
-  // Build summary
   const summary = Array.from(groups.entries())
     .map(([cat, items]) => `- ${cat}: ${items.length} 个`)
     .join('\n');
 
-  // Build detailed list — only what AI needs for HTML generation
+  // Detailed list: short slot ID + category + dimensions (filename only for context)
   const details = assets
     .map((a) => {
       const slot = getSlotName(a);
       const size = a.width && a.height ? `${a.width}x${a.height}` : '尺寸未知';
-      return `- ${a.originalName} | slot="${slot}" | ${a.category} | ${size}`;
+      return `- slot="${slot}" | ${a.category} | ${size} | ${a.originalName}`;
     })
     .join('\n');
 
-  return `### 素材概览\n${summary}\n\n### 素材详情（每个素材必须在 HTML 中有对应的 data-variant-slot）\n${details}`;
+  return `### 素材概览\n${summary}\n\n### 素材详情（每个素材必须有对应的 data-variant-slot）\n${details}`;
 }
 
 export async function generateSkeleton(params: GenerateParams) {
