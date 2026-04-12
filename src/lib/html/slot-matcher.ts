@@ -17,69 +17,24 @@ export function extractSlotNames(skeletonHtml: string): string[] {
 }
 
 /**
- * Match assets to skeleton slots using multi-strategy fallback:
- * 1. Exact slotName match
- * 2. Category name match
- * 3. Fuzzy filename match (Chinese + English)
- * 4. MIME type fallback (images → image slots, audio → audio slots)
+ * Match asset to slot by exact slotName.
+ * No fuzzy matching — if slotName doesn't match, return null.
+ * User should fix mismatches via the UI.
  */
 export function matchAssetToSlot(
   slot: string,
   assets: AssetRecord[],
   usedAssetIds: Set<string>
 ): AssetRecord | null {
-  // Strategy 1: exact slotName
-  let asset = assets.find(
+  const asset = assets.find(
     (a) => a.slotName === slot && a.base64CachePath && !usedAssetIds.has(a.id)
   );
-
-  // Strategy 2: category match
-  if (!asset) {
-    asset = assets.find(
-      (a) => a.category === slot && a.base64CachePath && !usedAssetIds.has(a.id)
-    );
-  }
-
-  // Strategy 3: fuzzy filename
-  if (!asset) {
-    const slotLower = slot.toLowerCase();
-    asset = assets.find((a) => {
-      const nameLower = a.originalName.toLowerCase();
-      return (
-        a.base64CachePath &&
-        !usedAssetIds.has(a.id) &&
-        (nameLower.includes(slotLower) ||
-          (slotLower.includes('background') &&
-            (nameLower.includes('背景') || nameLower.includes('bg') || nameLower.includes('background'))) ||
-          (slotLower.includes('popup') &&
-            (nameLower.includes('弹窗') || nameLower.includes('popup') || nameLower.includes('dialog'))) ||
-          (slotLower.includes('button') &&
-            (nameLower.includes('按钮') || nameLower.includes('btn') || nameLower.includes('button') || nameLower.includes('cta'))))
-      );
-    });
-  }
-
-  // Strategy 4: MIME type fallback
-  if (!asset) {
-    const isAudioSlot =
-      slot.includes('audio') || slot.includes('bgm') || slot.includes('sound') || slot.includes('music');
-    if (isAudioSlot) {
-      asset = assets.find(
-        (a) => a.mimeType.startsWith('audio/') && a.base64CachePath && !usedAssetIds.has(a.id)
-      );
-    } else {
-      asset = assets.find(
-        (a) => a.mimeType.startsWith('image/') && a.base64CachePath && !usedAssetIds.has(a.id)
-      );
-    }
-  }
-
   return asset || null;
 }
 
 /**
  * Build a complete slot→base64 map for synthesizing HTML.
- * Combines slot extraction, asset matching, and base64 loading.
+ * Only exact slotName matches are used. Unmatched slots remain as PLACEHOLDER.
  */
 export async function buildSlotMap(
   skeletonHtml: string,

@@ -48,34 +48,22 @@ describe('Slot Matcher', () => {
   });
 
   describe('matchAssetToSlot', () => {
-    it('strategy 1: exact slotName match', () => {
+    it('matches by exact slotName', () => {
       const assets = [makeAsset({ id: 'a1', slotName: 'background' })];
       const result = matchAssetToSlot('background', assets, new Set());
       expect(result?.id).toBe('a1');
     });
 
-    it('strategy 2: category match', () => {
-      const assets = [makeAsset({ id: 'a1', category: 'background' })];
+    it('returns null when slotName does not match', () => {
+      const assets = [makeAsset({ id: 'a1', slotName: 'popup' })];
       const result = matchAssetToSlot('background', assets, new Set());
-      expect(result?.id).toBe('a1');
+      expect(result).toBeNull();
     });
 
-    it('strategy 3: fuzzy filename match (English)', () => {
-      const assets = [makeAsset({ id: 'a1', originalName: 'bg-forest.png' })];
+    it('returns null for unrecognized slotName', () => {
+      const assets = [makeAsset({ id: 'a1', category: 'background', slotName: null })];
       const result = matchAssetToSlot('background', assets, new Set());
-      expect(result?.id).toBe('a1');
-    });
-
-    it('strategy 3: fuzzy filename match (Chinese)', () => {
-      const assets = [makeAsset({ id: 'a1', originalName: '弹窗-获奖.png' })];
-      const result = matchAssetToSlot('popup', assets, new Set());
-      expect(result?.id).toBe('a1');
-    });
-
-    it('strategy 4: MIME type fallback for audio slots', () => {
-      const assets = [makeAsset({ id: 'a1', mimeType: 'audio/mp3', originalName: 'music.mp3' })];
-      const result = matchAssetToSlot('bgm', assets, new Set());
-      expect(result?.id).toBe('a1');
+      expect(result).toBeNull();
     });
 
     it('respects usedAssetIds', () => {
@@ -85,12 +73,6 @@ describe('Slot Matcher', () => {
       ];
       const result = matchAssetToSlot('background', assets, new Set(['a1']));
       expect(result?.id).toBe('a2');
-    });
-
-    it('returns null when no match', () => {
-      const assets = [makeAsset({ id: 'a1', category: 'icon', base64CachePath: null })];
-      const result = matchAssetToSlot('background', assets, new Set());
-      expect(result).toBeNull();
     });
 
     it('skips assets without base64CachePath', () => {
