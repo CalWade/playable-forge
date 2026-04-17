@@ -90,6 +90,23 @@ export async function batchGenerate(params: BatchGenerateParams): Promise<BatchR
     } catch (e) { console.warn("Skipped:", e instanceof Error ? e.message : e); }
   }
 
+  // Determine the target slot for each dimension.
+  // Bug history: variant assets sometimes have empty/wrong slotName, which
+  // breaks slot replacement (skeleton placeholder remains blank). Resolution
+  // strategy, in order:
+  //   1. Use the slotName explicitly set on a variant asset (the original intent).
+  //   2. Fall back to a fixed asset whose slotName equals the dimension name
+  //      (e.g. dimensionGroup='background' → fixed slot 's1' if labelled 'background').
+  //   3. Fall back to the first variant asset in the dimension that has any slotName.
+  // Without this, P1-E manifests as "variants generated but skeleton unchanged".
+  const dimensionSlot = new Map<string, string>();
+  for (const dim of dimensions) {
+    let slot = dim.assets.find((a) => a.slotName)?.slotName;
+    if (!slot && fixedSlotMap.has(dim.name)) slot = dim.name;
+    if (!slot) slot = dim.assets[0]?.slotName || dim.name;
+    dimensionSlot.set(dim.name, slot);
+  }
+
   // Pre-load all variant assets base64
   const assetB64Cache = new Map<string, string>();
   for (const dim of dimensions) {
@@ -109,7 +126,8 @@ export async function batchGenerate(params: BatchGenerateParams): Promise<BatchR
     // Build slot map: start with fixed assets
     const slotAssets = new Map(fixedSlotMap);
 
-    // Override with variant assets
+    // Override with variant assets — using the dimension's resolved target slot,
+    // NOT asset.slotName directly (which can be empty/inconsistent).
     for (const dim of dimensions) {
       const assetId = combo[dim.name];
       if (assetId) {
@@ -117,8 +135,9 @@ export async function batchGenerate(params: BatchGenerateParams): Promise<BatchR
         if (asset) {
           const b64 = assetB64Cache.get(assetId);
           if (b64) {
-            slotAssets.set(asset.slotName, {
-              slotName: asset.slotName,
+            const targetSlot = dimensionSlot.get(dim.name) || asset.slotName;
+            slotAssets.set(targetSlot, {
+              slotName: targetSlot,
               base64DataUri: b64,
               mimeType: asset.mimeType,
             });

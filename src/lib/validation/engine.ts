@@ -1,4 +1,23 @@
 import type { ValidationCheckResult, ValidationResult } from '@/types';
+import { Parser } from 'acorn';
+
+/**
+ * Extract the contents of every <script> block (excluding external src=...)
+ * from raw HTML. Cheap regex — good enough for our generated playables.
+ */
+function extractInlineScripts(html: string): string[] {
+  const out: string[] = [];
+  const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    const attrs = m[1] || '';
+    if (/\bsrc\s*=/i.test(attrs)) continue; // external; not our concern
+    if (/type\s*=\s*["']?(application\/json|text\/template)/i.test(attrs)) continue;
+    const body = m[2];
+    if (body && body.trim()) out.push(body);
+  }
+  return out;
+}
 
 interface ValidationRule {
   id: string;
@@ -51,6 +70,40 @@ const rules: ValidationRule[] = [
       return {
         passed: found.length === 0,
         detail: found.length === 0 ? '无外部引用' : `发现 ${found.length} 个外部引用`,
+      };
+    },
+  },
+  {
+    id: 'js-syntax',
+    name: 'JS 语法检查',
+    level: 'error',
+    check: (html) => {
+      const scripts = extractInlineScripts(html);
+      if (scripts.length === 0) {
+        return { passed: true, detail: '无内联 JS' };
+      }
+      const errors: string[] = [];
+      for (let i = 0; i < scripts.length; i++) {
+        try {
+          Parser.parse(scripts[i], {
+            ecmaVersion: 'latest',
+            sourceType: 'script',
+            allowReturnOutsideFunction: true,
+            allowAwaitOutsideFunction: true,
+            allowImportExportEverywhere: true,
+            allowHashBang: true,
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push(`script #${i + 1}: ${msg}`);
+        }
+      }
+      return {
+        passed: errors.length === 0,
+        detail:
+          errors.length === 0
+            ? `${scripts.length} 个内联脚本语法 OK`
+            : `${errors.length}/${scripts.length} 个脚本语法错误：${errors.slice(0, 2).join('; ')}`,
       };
     },
   },
