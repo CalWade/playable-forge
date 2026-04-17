@@ -7,8 +7,8 @@ export const POST = withAuth(async (_request, { params, auth }) => {
   });
   if (!project) return Response.json({ error: 'Project not found' }, { status: 404 });
 
-  const sourceVersion = await prisma.htmlVersion.findUnique({
-    where: { id: params.versionId },
+  const sourceVersion = await prisma.htmlVersion.findFirst({
+    where: { id: params.versionId, projectId: params.id },
   });
   if (!sourceVersion) return Response.json({ error: 'Version not found' }, { status: 404 });
 

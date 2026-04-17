@@ -21,6 +21,13 @@ export const PATCH = withAuth(async (request, { params, auth }) => {
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) return Response.json({ error: 'Invalid input' }, { status: 400 });
 
+  // Verify asset belongs to this project (prevent IDOR via assetId)
+  const existing = await prisma.asset.findFirst({
+    where: { id: params.assetId, projectId: params.id },
+    select: { id: true },
+  });
+  if (!existing) return Response.json({ error: 'Asset not found' }, { status: 404 });
+
   const asset = await prisma.asset.update({
     where: { id: params.assetId },
     data: parsed.data,
@@ -35,7 +42,9 @@ export const DELETE = withAuth(async (_request, { params, auth }) => {
   });
   if (!project) return Response.json({ error: 'Project not found' }, { status: 404 });
 
-  const asset = await prisma.asset.findUnique({ where: { id: params.assetId } });
+  const asset = await prisma.asset.findFirst({
+    where: { id: params.assetId, projectId: params.id },
+  });
   if (!asset) return Response.json({ error: 'Asset not found' }, { status: 404 });
 
   const filesToDelete = [asset.filePath, asset.thumbnailPath, asset.base64CachePath].filter(Boolean);
