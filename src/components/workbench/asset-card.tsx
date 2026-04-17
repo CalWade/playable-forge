@@ -73,10 +73,10 @@ export function AssetCard({ asset, projectId, onUpdate, token, onSaveToLibrary }
             {asset.mimeType.startsWith('audio/') ? '🔊' : '📄'}
           </div>
         )}
-        {/* Category badge */}
+        {/* Category badge - shown on hover only to reduce visual noise */}
         <Badge
           variant={CATEGORY_VARIANTS[asset.category] || 'default'}
-          className="absolute left-1 top-1 text-[10px]"
+          className="absolute left-1 top-1 text-[10px] opacity-0 group-hover:opacity-100 clay-transition"
         >
           {CATEGORY_LABELS[asset.category] || asset.category}
         </Badge>
@@ -86,13 +86,13 @@ export function AssetCard({ asset, projectId, onUpdate, token, onSaveToLibrary }
       <p className="truncate text-xs text-clay-text/70" title={asset.originalName}>
         {asset.originalName}
       </p>
-      <div className="flex items-center gap-1 text-[10px] font-medium text-clay-text/40">
+      <div className="flex items-center gap-1 text-[10px] font-medium text-clay-text/40" title="AI 压缩节省空间">
         <span>{(asset.fileSize / 1024).toFixed(0)}KB</span>
         {asset.compressedSize && asset.compressedSize < asset.fileSize && (
           <>
             <span>→</span>
             <span className="text-green-600">{(asset.compressedSize / 1024).toFixed(0)}KB</span>
-            <span className="text-green-600">(-{Math.round((1 - asset.compressedSize / asset.fileSize) * 100)}%)</span>
+            <span className="text-green-600">↓{Math.round((1 - asset.compressedSize / asset.fileSize) * 100)}%</span>
           </>
         )}
       </div>
