@@ -6,17 +6,38 @@ export function sseEvent(event: string, data: unknown): string {
 
 /**
  * Create an SSE streaming response with a pipeline runner.
+ *
+ * Resilient to client disconnects: if the consumer closes the stream
+ * (browser tab closed, network blip, fetch abort), `enqueue()` would
+ * otherwise throw `ERR_INVALID_STATE: Controller is already closed`
+ * and crash the pipeline mid-flight. We track the closed state via the
+ * `cancel` hook and skip writes once the stream is gone.
  */
 export function createSSEResponse(
   runner: (sse: SSEWriter) => Promise<void>
 ): Response {
   const encoder = new TextEncoder();
+  let closed = false;
 
-  const stream = new ReadableStream({
+  const safeEnqueue = (
+    controller: ReadableStreamDefaultController<Uint8Array>,
+    payload: Uint8Array
+  ) => {
+    if (closed) return;
+    try {
+      controller.enqueue(payload);
+    } catch (err) {
+      // Stream went away between our check and the enqueue — flip the flag.
+      closed = true;
+      console.warn('[sse] enqueue after close:', (err as Error).message);
+    }
+  };
+
+  const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const sse: SSEWriter = {
         write(event, data) {
-          controller.enqueue(encoder.encode(sseEvent(event, data)));
+          safeEnqueue(controller, encoder.encode(sseEvent(event, data)));
         },
       };
 
@@ -24,7 +45,8 @@ export function createSSEResponse(
         await runner(sse);
       } catch (error) {
         console.error('SSE pipeline error:', error);
-        controller.enqueue(
+        safeEnqueue(
+          controller,
           encoder.encode(
             sseEvent('error', {
               message: error instanceof Error ? error.message : 'Internal error',
@@ -33,8 +55,18 @@ export function createSSEResponse(
           )
         );
       } finally {
-        controller.close();
+        if (!closed) {
+          try {
+            controller.close();
+          } catch {
+            /* already closed by consumer */
+          }
+        }
       }
+    },
+    cancel() {
+      // Consumer aborted (browser closed, fetch cancelled, etc.).
+      closed = true;
     },
   });
 
