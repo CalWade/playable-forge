@@ -4,7 +4,15 @@ import { withAuth } from '@/lib/auth/middleware';
 export const GET = withAuth(async (_request, { auth }) => {
   const projects = await prisma.project.findMany({
     where: { userId: auth.userId },
-    include: { stats: true, _count: { select: { variants: true } } },
+    include: {
+      stats: true,
+      _count: { select: { variants: true } },
+      versions: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: { validationGrade: true },
+      },
+    },
   });
 
   const totalProjects = projects.length;
@@ -56,6 +64,7 @@ export const GET = withAuth(async (_request, { auth }) => {
         variantCount: p._count.variants,
         createdAt: p.createdAt.toISOString(),
         updatedAt: p.updatedAt.toISOString(),
+        latestGrade: p.versions[0]?.validationGrade || null,
       })),
   });
 });
