@@ -79,9 +79,16 @@ export function GeneratePanel({
           <button
             onClick={onGenerate}
             disabled={isStreaming}
-            className="rounded-clay-lg clay-gradient-primary text-white clay-shadow px-8 py-2.5 text-sm font-bold hover:clay-shadow-hover hover:-translate-y-1 active:translate-y-0 active:clay-shadow-active clay-transition disabled:opacity-50"
+            className="rounded-clay-lg clay-gradient-primary text-white clay-shadow px-8 py-2.5 text-sm font-bold hover:clay-shadow-hover hover:-translate-y-1 active:translate-y-0 active:clay-shadow-active clay-transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {isStreaming ? '生成中...' : initialCollapsed ? '🔄 重新生成' : '✨ 生成初稿'}
+            {isStreaming ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                <span>正在生成</span>
+              </>
+            ) : (
+              <span>{initialCollapsed ? '🔄 重新生成' : '✨ 生成初稿'}</span>
+            )}
           </button>
           {isSizeWarning && (
             <span className="text-yellow-500 text-lg" title={`预估体积: ${((estimatedSize || 0) / 1024 / 1024).toFixed(1)}MB，可能超过 5MB 限制`}>
