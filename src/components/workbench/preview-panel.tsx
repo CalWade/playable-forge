@@ -114,34 +114,44 @@ export function PreviewPanel({
       </div>
 
       {/* Device controls */}
-      <div className="flex items-center justify-between border-b border-clay-blue-50/30 px-4 py-1.5 flex-shrink-0">
-        <div className="flex items-center gap-1">
+      <div className="flex items-center justify-between border-b border-clay-blue-50/30 px-4 py-2 flex-shrink-0">
+        <div className="flex items-center gap-1 rounded-clay-sm bg-white/60 clay-shadow-sm p-1">
           <button
             onClick={() => setIsLandscape(false)}
-            className={`rounded p-1 ${!isLandscape ? 'bg-blue-100 text-blue-600' : 'text-clay-muted hover:text-clay-text/70'}`}
+            title="竖屏"
+            className={`rounded-clay-sm px-2 py-1 clay-transition ${
+              !isLandscape
+                ? 'bg-gradient-to-br from-clay-blue-300 to-clay-blue-500 text-white clay-shadow-sm'
+                : 'text-clay-text/50 hover:text-clay-text'
+            }`}
           >
             <Smartphone size={14} />
           </button>
           <button
             onClick={() => setIsLandscape(true)}
-            className={`rounded p-1 ${isLandscape ? 'bg-blue-100 text-blue-600' : 'text-clay-muted hover:text-clay-text/70'}`}
+            title="横屏"
+            className={`rounded-clay-sm px-2 py-1 clay-transition ${
+              isLandscape
+                ? 'bg-gradient-to-br from-clay-blue-300 to-clay-blue-500 text-white clay-shadow-sm'
+                : 'text-clay-text/50 hover:text-clay-text'
+            }`}
           >
             <Monitor size={14} />
           </button>
           <button
             onClick={() => setReplayKey((k) => k + 1)}
-            className="rounded p-1 text-clay-muted hover:text-clay-text/70"
             title="重播"
+            className="rounded-clay-sm px-2 py-1 text-clay-text/50 hover:text-clay-text clay-transition"
           >
             <RotateCcw size={14} />
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-clay-muted">{deviceW}×{deviceH}</span>
+          <span className="text-[10px] font-semibold text-clay-text/40">{deviceW}×{deviceH}</span>
           <select
             value={deviceIdx}
             onChange={(e) => setDeviceIdx(Number(e.target.value))}
-            className="rounded border border-clay-blue-50 px-1.5 py-0.5 text-[10px] text-clay-text/70"
+            className="rounded-clay-sm bg-white/60 clay-shadow-sm px-2 py-1 text-[11px] font-semibold text-clay-text/70 focus:outline-none focus:ring-2 focus:ring-clay-blue-300 clay-transition"
           >
             {DEVICES.map((d, i) => (
               <option key={d.id} value={i}>{d.label}</option>
