@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { TemplateSelectModal } from '@/components/workbench/template-select-modal';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { Plus, ArrowRight, FileText, Hammer, Search, LogOut, User } from 'lucide-react';
+import { Plus, ArrowRight, FileText, Hammer, Search, LogOut, User, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { swrFetcher } from '@/lib/swr-fetcher';
 
@@ -68,6 +68,17 @@ export default function DashboardPage() {
     try {
       const { project } = await api.post<{ project: { id: string } }>('/api/projects', { templateId });
       router.push(`/projects/${project.id}`);
+    } catch { /* ignore */ }
+  };
+
+  const handleDeleteProject = async (id: string, name: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm(`确认删除项目 「${name}」？此操作不可撤销。`)) return;
+    try {
+      await api.del(`/api/projects/${id}`);
+      // Trigger SWR refresh by mutating the key
+      const { mutate } = await import('swr');
+      mutate('/api/stats/dashboard');
     } catch { /* ignore */ }
   };
 
@@ -294,8 +305,15 @@ export default function DashboardPage() {
                           </p>
                         </div>
                       </div>
-                      {/* Right: CTA */}
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Right: inline actions (delete appears on hover for drafts and all projects) + chevron */}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          onClick={(e) => handleDeleteProject(p.id, p.name, e)}
+                          title="删除项目"
+                          className="opacity-0 group-hover:opacity-100 clay-transition rounded-clay-sm p-1.5 text-clay-text/40 hover:text-red-500 hover:bg-red-50"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                         <ArrowRight size={16} className="text-clay-blue-300 group-hover:translate-x-0.5 clay-transition" />
                       </div>
                     </div>
