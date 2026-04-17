@@ -40,23 +40,18 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
       {messages.map((msg, i) => {
         const config = ROLE_CONFIG[msg.role] || ROLE_CONFIG.system;
 
-        // Status messages: compact inline
+        // Status messages: skip rendering in chat list (progress shown in preview panel instead)
         if (msg.role === 'status') {
-          return (
-            <div key={i} className="flex justify-center">
-              <div className={`${config.bubble} px-3 py-1.5 max-w-[90%]`}>
-                {msg.content}
-              </div>
-            </div>
-          );
+          return null;
         }
 
-        // System messages: centered
+        // System messages: centered, small, with neutral styling (distinct from AI replies)
         if (msg.role === 'system') {
           return (
             <div key={i} className="flex justify-center">
-              <div className={`${config.bubble} px-4 py-2 max-w-[85%]`}>
-                {msg.content}
+              <div className={`${config.bubble} px-4 py-1.5 max-w-[85%] flex items-center gap-1.5`}>
+                <span className="text-[10px] opacity-60">{config.icon}</span>
+                <span>{msg.content}</span>
               </div>
             </div>
           );
