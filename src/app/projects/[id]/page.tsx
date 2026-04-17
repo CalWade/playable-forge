@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useSWRConfig } from 'swr';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
-import { ArrowLeft, Settings, Lock, Copy } from 'lucide-react';
+import { ArrowLeft, Settings, Lock, Copy, Download, MoreHorizontal, LogOut, User, Hammer } from 'lucide-react';
 import useSWR from 'swr';
 import { useAssets } from '@/hooks/use-assets';
 import { api } from '@/lib/api-client';
@@ -21,7 +21,7 @@ export default function ProjectWorkbenchPage() {
   const params = useParams();
   const router = useRouter();
   const projectId = params.id as string;
-  const { token } = useAuth();
+  const { token, user, logout } = useAuth();
   const { mutate: globalMutate } = useSWRConfig();
   const [currentVersionId, setCurrentVersionId] = useState<string | undefined>();
   const [streamingHtml, setStreamingHtml] = useState('');
@@ -74,6 +74,11 @@ export default function ProjectWorkbenchPage() {
 
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+
+  const displayName = user?.displayName || user?.username || 'U';
+  const avatarLetter = displayName.charAt(0).toUpperCase();
 
   const handleRename = async () => {
     if (!nameInput.trim()) return;
@@ -89,9 +94,16 @@ export default function ProjectWorkbenchPage() {
         {/* Header - compact */}
         <header className="flex items-center justify-between rounded-clay-lg clay-gradient-surface clay-shadow px-4 py-2 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <button onClick={() => router.push('/dashboard')} className="text-clay-blue-400 hover:text-clay-blue-300 clay-transition flex-shrink-0">
+            <button onClick={() => router.push('/dashboard')} className="text-clay-blue-400 hover:text-clay-blue-300 clay-transition flex-shrink-0" title="返回">
               <ArrowLeft size={18} />
             </button>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <div className="flex h-6 w-6 items-center justify-center rounded-clay-sm bg-gradient-to-br from-clay-blue-300 to-clay-blue-500 clay-shadow-sm">
+                <Hammer size={12} className="text-white" />
+              </div>
+              <span className="text-xs font-extrabold text-clay-text/50">Forge</span>
+              <span className="text-xs font-bold text-clay-text/30">/</span>
+            </div>
             {editingName ? (
               <div className="flex items-center gap-2">
                 <input
@@ -130,9 +142,44 @@ export default function ProjectWorkbenchPage() {
               </span>
             )}
           </div>
-          <button onClick={() => router.push('/settings')} className="text-clay-blue-400 hover:text-clay-blue-300 clay-transition">
-            <Settings size={20} />
-          </button>
+          <div className="relative flex items-center">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-clay-blue-300 to-clay-blue-500 text-xs font-bold text-white clay-shadow-sm hover:clay-shadow clay-transition"
+              title={displayName}
+            >
+              {avatarLetter}
+            </button>
+            {showUserMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                <div className="absolute right-0 top-11 z-50 w-48 rounded-clay bg-white clay-shadow-lg py-2 border border-clay-blue-100">
+                  <div className="px-4 py-2 border-b border-clay-blue-50">
+                    <p className="text-xs text-clay-text/50">登录身份</p>
+                    <p className="text-sm font-semibold text-clay-text truncate">{displayName}</p>
+                  </div>
+                  <button
+                    onClick={() => { setShowUserMenu(false); router.push('/settings'); }}
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-clay-text hover:bg-clay-blue-50 clay-transition"
+                  >
+                    <Settings size={14} /> 设置
+                  </button>
+                  <button
+                    onClick={() => { setShowUserMenu(false); router.push('/dashboard'); }}
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-clay-text hover:bg-clay-blue-50 clay-transition"
+                  >
+                    <User size={14} /> 返回控制台
+                  </button>
+                  <button
+                    onClick={logout}
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 clay-transition"
+                  >
+                    <LogOut size={14} /> 登出
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </header>
 
         {/* Three-column layout */}
@@ -164,36 +211,81 @@ export default function ProjectWorkbenchPage() {
           </div>
         </div>
 
-        {/* Bottom bar - compact */}
-        <div className="flex items-center justify-end gap-2 rounded-clay-lg clay-gradient-surface clay-shadow px-4 py-2 flex-shrink-0">
-          {currentVersionId && (
+        {/* Bottom bar - compact with clear hierarchy: secondary (icon only) | primary CTA */}
+        <div className="flex items-center justify-between gap-2 rounded-clay-lg clay-gradient-surface clay-shadow px-4 py-2 flex-shrink-0">
+          {/* Left: version/asset status hint (keeps bottom bar feeling informed, not just buttons) */}
+          <div className="flex items-center gap-2 text-xs text-clay-text/50">
+            {currentVersionId ? (
+              <>
+                <span className="inline-flex h-1.5 w-1.5 rounded-full bg-green-400" />
+                <span className="font-semibold">当前版本已保存</span>
+              </>
+            ) : (
+              <>
+                <span className="inline-flex h-1.5 w-1.5 rounded-full bg-clay-blue-300" />
+                <span className="font-semibold">等待生成初稿</span>
+              </>
+            )}
+          </div>
+
+          {/* Right: secondary actions (icon buttons) + primary CTA */}
+          <div className="flex items-center gap-2">
+            {currentVersionId && (
+              <a
+                href={`/api/projects/${projectId}/preview/${currentVersionId}?token=${token}`}
+                download="playable-ad.html"
+                title="下载 HTML"
+                className="inline-flex items-center justify-center rounded-clay-sm bg-white/60 clay-shadow-sm h-9 w-9 text-clay-text/70 hover:text-clay-text hover:clay-shadow clay-transition"
+              >
+                <Download size={15} />
+              </a>
+            )}
+
+            <div className="relative">
+              <button
+                onClick={() => setShowMoreMenu(!showMoreMenu)}
+                title="更多"
+                className="inline-flex items-center justify-center rounded-clay-sm bg-white/60 clay-shadow-sm h-9 w-9 text-clay-text/70 hover:text-clay-text hover:clay-shadow clay-transition"
+              >
+                <MoreHorizontal size={15} />
+              </button>
+              {showMoreMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowMoreMenu(false)} />
+                  <div className="absolute right-0 bottom-11 z-50 w-48 rounded-clay bg-white clay-shadow-lg py-2 border border-clay-blue-100">
+                    <button
+                      disabled={!currentVersionId}
+                      onClick={async () => {
+                        setShowMoreMenu(false);
+                        try {
+                          await api.post('/api/templates', { projectId, name: `${project?.name || '项目'}-模板` });
+                          toast('已保存为模板', 'success');
+                        } catch { toast('保存失败（需要至少一个版本）', 'error'); }
+                      }}
+                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-clay-text hover:bg-clay-blue-50 clay-transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Copy size={14} /> 存为模板
+                    </button>
+                    <button
+                      disabled={!currentVersionId}
+                      onClick={() => { setShowMoreMenu(false); handleLockSkeleton(); }}
+                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-clay-text hover:bg-clay-blue-50 clay-transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Lock size={14} /> 锁定骨架
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
             <Button
-              variant="outline"
-              onClick={async () => {
-                try {
-                  await api.post('/api/templates', { projectId, name: `${project?.name || '项目'}-模板` });
-                  toast('已保存为模板', 'success');
-                } catch { toast('保存失败（需要至少一个版本）', 'error'); }
-              }}
+              onClick={() => router.push(`/projects/${projectId}/variants`)}
+              disabled={!currentVersionId}
+              title={!currentVersionId ? '需先生成初稿' : '批量生成变体'}
             >
-              <Copy size={16} className="mr-1.5" /> 存为模板
+              生成变体 →
             </Button>
-          )}
-          {currentVersionId && (
-            <a
-              href={`/api/projects/${projectId}/preview/${currentVersionId}?token=${token}`}
-              download="playable-ad.html"
-              className="inline-flex items-center gap-1.5 rounded-clay clay-gradient-surface clay-shadow-sm px-5 py-2.5 text-sm font-bold text-clay-text hover:clay-shadow hover:-translate-y-0.5 clay-transition"
-            >
-              ⬇ 下载 HTML
-            </a>
-          )}
-          <Button variant="outline" onClick={handleLockSkeleton} disabled={!currentVersionId}>
-            <Lock size={16} className="mr-1.5" /> 锁定骨架
-          </Button>
-          <Button onClick={() => router.push(`/projects/${projectId}/variants`)}>
-            生成变体 →
-          </Button>
+          </div>
         </div>
       </div>
     </ProtectedRoute>
