@@ -9,8 +9,8 @@ export const GET = withAuth(async (_request, { params, auth }) => {
   });
   if (!project) return new Response('Not found', { status: 404 });
 
-  const version = await prisma.htmlVersion.findUnique({
-    where: { id: params.versionId },
+  const version = await prisma.htmlVersion.findFirst({
+    where: { id: params.versionId, projectId: params.id },
   });
   if (!version) return new Response('Version not found', { status: 404 });
 

@@ -8,7 +8,9 @@ export const GET = withAuth(async (_request, { params, auth }) => {
   });
   if (!project) return new Response('Not found', { status: 404 });
 
-  const asset = await prisma.asset.findUnique({ where: { id: params.assetId } });
+  const asset = await prisma.asset.findFirst({
+    where: { id: params.assetId, projectId: params.id },
+  });
   if (!asset || !asset.thumbnailPath) return new Response('Not found', { status: 404 });
 
   const buffer = await fs.readFile(asset.thumbnailPath);
